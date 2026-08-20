@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------- */
+/* Tokens de marca — JMF Centro de Operaciones (ver ESPECIFICACION.md §4) */
+/* ---------------------------------------------------------------------- */
+:root {
+  --jmf-negro: #0e0e0e;
+  --jmf-negro-2: #131313;
+  --jmf-panel: #1b1b1b;
+  --jmf-panel-2: #1c1c1c;
+  --jmf-borde: #2a2a2a;
+  --jmf-rojo: #e8002d;
+  --jmf-dorado: #ffd700;
+  --jmf-blanco: #f4f4f4;
+  --jmf-gris: #888888;
+  --jmf-verde: #3ecf7a;
+
+  --background: var(--jmf-negro);
+  --foreground: var(--jmf-blanco);
+}
+
+@theme inline {
+  --color-fondo: var(--jmf-negro);
+  --color-fondo-2: var(--jmf-negro-2);
+  --color-panel: var(--jmf-panel);
+  --color-panel-2: var(--jmf-panel-2);
+  --color-borde: var(--jmf-borde);
+  --color-rojo: var(--jmf-rojo);
+  --color-dorado: var(--jmf-dorado);
+  --color-texto: var(--jmf-blanco);
+  --color-texto-secundario: var(--jmf-gris);
+  --color-verde: var(--jmf-verde);
+
+  --font-display: var(--font-roboto-slab);
+  --font-sans: var(--font-inter);
+}
+
+body {
+  background: var(--jmf-negro);
+  color: var(--jmf-blanco);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display), "Rockwell", serif;
+}
+
+/* Foco visible de teclado (piso de calidad §11) */
+:focus-visible {
+  outline: 2px solid var(--jmf-rojo);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--jmf-rojo);
+  color: var(--jmf-blanco);
+}
+
+/* Scrollbar sutil acorde a la marca */
+* {
+  scrollbar-color: var(--jmf-borde) var(--jmf-negro);
+}
