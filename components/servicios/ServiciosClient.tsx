@@ -18,7 +18,10 @@ export function ServiciosClient({ servicios }: { servicios: Servicio[] }) {
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const toggleActivo = (id: string, activoActual: boolean) => {
+  const toggleActivo = (id: string, nombre: string, activoActual: boolean) => {
+    if (activoActual && !confirm(`¿Desactivar "${nombre}"? Deja de poder elegirse en Agenda.`)) {
+      return;
+    }
     startTransition(() => {
       cambiarActivoServicio(id, !activoActual);
     });
@@ -122,7 +125,7 @@ export function ServiciosClient({ servicios }: { servicios: Servicio[] }) {
                     Editar
                   </button>
                   <button
-                    onClick={() => toggleActivo(s.id, s.activo)}
+                    onClick={() => toggleActivo(s.id, s.nombre, s.activo)}
                     disabled={isPending}
                     className="text-xs text-texto-secundario hover:text-rojo disabled:opacity-50"
                   >
