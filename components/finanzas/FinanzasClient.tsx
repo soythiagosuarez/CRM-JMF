@@ -211,26 +211,34 @@ function TotalCard({
   totales: TotalesPorMarca;
   destacado?: boolean;
 }) {
-  const enRojo = totales.neto < 0;
+  const colorNeto =
+    totales.neto > 0 ? "text-verde" : totales.neto < 0 ? "text-rojo" : "text-texto-secundario";
   return (
     <Card className={destacado ? "border-dorado/40" : undefined}>
       <div className="flex items-center justify-between">
         <span className="text-sm text-texto-secundario">{titulo}</span>
-        {enRojo && (
+        {totales.neto < 0 && (
           <Badge tono="negativo">
             <AlertTriangle size={12} className="mr-1" />
             Rojo
           </Badge>
         )}
       </div>
-      <span
-        className={`font-display text-xl font-semibold ${enRojo ? "text-rojo" : "text-verde"}`}
-      >
+
+      <p className="text-xs text-texto-secundario mt-3">Neto</p>
+      <span className={`font-display text-xl font-semibold ${colorNeto}`}>
         {formatARS(totales.neto)}
       </span>
-      <div className="flex justify-between text-xs text-texto-secundario mt-1">
-        <span>+{formatARS(totales.ingresos)}</span>
-        <span>-{formatARS(totales.egresos)}</span>
+
+      <div className="flex justify-between gap-3 mt-3">
+        <div>
+          <p className="text-xs text-texto-secundario">Ingresos</p>
+          <span className="text-sm text-texto-secundario">{formatARS(totales.ingresos)}</span>
+        </div>
+        <div className="text-right">
+          <p className="text-xs text-texto-secundario">Egresos</p>
+          <span className="text-sm text-texto-secundario">{formatARS(totales.egresos)}</span>
+        </div>
       </div>
     </Card>
   );

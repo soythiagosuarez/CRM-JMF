@@ -1,5 +1,7 @@
-import { EnConstruccion } from "@/components/shell/EnConstruccion";
+import { listarAutosClassmotor } from "@/lib/data/classmotor";
+import { TableroClassmotorClient } from "@/components/classmotor/TableroClassmotorClient";
 
-export default function Page() {
-  return <EnConstruccion titulo="Classmotor" logo="/brands/classmotor.png" />;
+export default async function ClassmotorPage() {
+  const autos = await listarAutosClassmotor();
+  return <TableroClassmotorClient autos={autos} />;
 }
