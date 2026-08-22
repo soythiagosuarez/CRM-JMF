@@ -11,11 +11,13 @@ const estadoInicial: EstadoTurnoForm = {};
 export function TurnoForm({
   clientes,
   servicios,
+  fechaInicial,
   onCancelar,
   onGuardado,
 }: {
   clientes: ClienteConVehiculos[];
   servicios: Servicio[];
+  fechaInicial?: string;
   onCancelar: () => void;
   onGuardado: () => void;
 }) {
@@ -89,7 +91,14 @@ export function TurnoForm({
           <label htmlFor="fecha" className="text-sm text-texto-secundario">
             Fecha
           </label>
-          <input id="fecha" name="fecha" type="date" required className="campo" />
+          <input
+            id="fecha"
+            name="fecha"
+            type="date"
+            required
+            defaultValue={fechaInicial}
+            className="campo"
+          />
         </div>
 
         <div className="flex flex-col gap-1.5">

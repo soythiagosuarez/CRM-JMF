@@ -61,6 +61,25 @@ export async function actualizarCliente(
   return { ok: true };
 }
 
+export async function eliminarCliente(id: string): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("clientes").delete().eq("id", id);
+
+  if (error) {
+    // 23503 = foreign key violation: tiene turnos/órdenes/leads asociados.
+    if (error.code === "23503") {
+      return {
+        error:
+          "No se puede eliminar: este cliente tiene turnos, órdenes o leads asociados.",
+      };
+    }
+    return { error: "No se pudo eliminar: " + error.message };
+  }
+
+  revalidatePath("/clientes");
+  redirect("/clientes");
+}
+
 function leerVehiculoInput(formData: FormData): VehiculoInput | { error: string } {
   const marca = String(formData.get("marca") ?? "").trim();
   const modelo = String(formData.get("modelo") ?? "").trim();

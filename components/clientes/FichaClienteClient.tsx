@@ -11,6 +11,7 @@ import {
   crearVehiculo,
   actualizarVehiculo,
   eliminarVehiculo,
+  eliminarCliente,
 } from "@/app/(app)/clientes/actions";
 import type { ClienteConVehiculos } from "@/lib/types/cliente";
 
@@ -18,12 +19,27 @@ export function FichaClienteClient({ cliente }: { cliente: ClienteConVehiculos }
   const [editandoDatos, setEditandoDatos] = useState(false);
   const [agregandoVehiculo, setAgregandoVehiculo] = useState(false);
   const [editandoVehiculoId, setEditandoVehiculoId] = useState<string | null>(null);
+  const [errorEliminar, setErrorEliminar] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const borrarVehiculo = (vehiculoId: string) => {
     if (!confirm("¿Eliminar este vehículo? No se puede deshacer.")) return;
     startTransition(() => {
       eliminarVehiculo(cliente.id, vehiculoId);
+    });
+  };
+
+  const borrarCliente = () => {
+    if (
+      !confirm(
+        `¿Eliminar a ${cliente.nombre_completo}? Se borran también sus vehículos. No se puede deshacer.`
+      )
+    )
+      return;
+    setErrorEliminar(null);
+    startTransition(async () => {
+      const resultado = await eliminarCliente(cliente.id);
+      if (resultado?.error) setErrorEliminar(resultado.error);
     });
   };
 
@@ -67,14 +83,29 @@ export function FichaClienteClient({ cliente }: { cliente: ClienteConVehiculos }
                 <p className="text-sm text-texto-secundario mt-2">{cliente.notas}</p>
               )}
             </div>
-            <button
-              onClick={() => setEditandoDatos(true)}
-              className="flex items-center gap-1.5 text-xs text-texto-secundario hover:text-texto shrink-0"
-            >
-              <Pencil size={14} />
-              Editar
-            </button>
+            <div className="flex items-center gap-3 shrink-0">
+              <button
+                onClick={() => setEditandoDatos(true)}
+                className="flex items-center gap-1.5 text-xs text-texto-secundario hover:text-texto"
+              >
+                <Pencil size={14} />
+                Editar
+              </button>
+              <button
+                onClick={borrarCliente}
+                disabled={isPending}
+                className="flex items-center gap-1.5 text-xs text-texto-secundario hover:text-rojo disabled:opacity-50"
+              >
+                <Trash2 size={14} />
+                Eliminar
+              </button>
+            </div>
           </div>
+        )}
+        {errorEliminar && (
+          <p className="text-sm text-rojo mt-3" role="alert">
+            {errorEliminar}
+          </p>
         )}
       </Card>
 

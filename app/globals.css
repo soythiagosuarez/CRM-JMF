@@ -64,18 +64,23 @@ h3,
   scrollbar-color: var(--jmf-borde) var(--jmf-negro);
 }
 
-/* Input/textarea/select de formularios en toda la app */
-.campo {
-  width: 100%;
-  border-radius: 0.5rem;
-  border: 1px solid var(--jmf-borde);
-  background: var(--jmf-negro-2);
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  color: var(--jmf-blanco);
-  outline: none;
-}
+/* Input/textarea/select de formularios en toda la app.
+   En @layer components para que utilidades de Tailwind como pl-9
+   puedan pisar el padding por especificidad de capa (si no, este
+   bloque queda después de las utilities en el CSS final y siempre gana). */
+@layer components {
+  .campo {
+    width: 100%;
+    border-radius: 0.5rem;
+    border: 1px solid var(--jmf-borde);
+    background: var(--jmf-negro-2);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--jmf-blanco);
+    outline: none;
+  }
 
-.campo:focus-visible {
-  border-color: var(--jmf-rojo);
+  .campo:focus-visible {
+    border-color: var(--jmf-rojo);
+  }
 }

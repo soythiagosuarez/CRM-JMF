@@ -31,15 +31,18 @@ async function enriquecer(turnos: TurnoCrudo[]): Promise<TurnoConDatos[]> {
   }));
 }
 
-/** Turnos desde hoy en adelante (no cancelados primero), para la Agenda. */
-export async function listarProximosTurnos(): Promise<TurnoConDatos[]> {
+/** Turnos entre `desde` y `hasta` (inclusive, YYYY-MM-DD), para el calendario. */
+export async function listarTurnosEnRango(
+  desde: string,
+  hasta: string
+): Promise<TurnoConDatos[]> {
   const supabase = await createClient();
-  const hoy = new Date().toISOString().slice(0, 10);
 
   const { data, error } = await supabase
     .from("turnos")
     .select("*, clientes(nombre_completo), vehiculos(marca,modelo,patente)")
-    .gte("fecha", hoy)
+    .gte("fecha", desde)
+    .lte("fecha", hasta)
     .order("fecha", { ascending: true })
     .order("hora", { ascending: true });
 
