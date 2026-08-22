@@ -19,11 +19,17 @@ export default async function AgendaPage({
   const { desde, hasta } =
     vista === "mes" ? rangoMes(fecha) : vista === "semana" ? rangoSemana(fecha) : { desde: fecha, hasta: fecha };
 
-  const [turnos, clientes, servicios] = await Promise.all([
+  const hoy = hoyISO();
+  const [turnos, clientes, servicios, turnosHoy] = await Promise.all([
     listarTurnosEnRango(desde, hasta),
     listarClientesConVehiculos(),
     listarServicios(),
+    hoy >= desde && hoy <= hasta ? Promise.resolve(null) : listarTurnosEnRango(hoy, hoy),
   ]);
+
+  const cantidadTurnosHoy = (
+    turnosHoy ?? turnos.filter((t) => t.fecha === hoy)
+  ).filter((t) => t.estado !== "cancelado").length;
 
   return (
     <CalendarioClient
@@ -32,6 +38,7 @@ export default async function AgendaPage({
       servicios={servicios.filter((s) => s.activo)}
       vista={vista}
       fecha={fecha}
+      cantidadTurnosHoy={cantidadTurnosHoy}
     />
   );
 }

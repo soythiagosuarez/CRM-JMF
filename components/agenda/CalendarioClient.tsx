@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, PartyPopper, CalendarX } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
@@ -40,12 +40,14 @@ export function CalendarioClient({
   servicios,
   vista,
   fecha,
+  cantidadTurnosHoy,
 }: {
   turnos: TurnoConDatos[];
   clientes: ClienteConVehiculos[];
   servicios: Servicio[];
   vista: Vista;
   fecha: string;
+  cantidadTurnosHoy: number;
 }) {
   const router = useRouter();
   const [turnoAbierto, setTurnoAbierto] = useState<TurnoConDatos | null>(null);
@@ -113,6 +115,8 @@ export function CalendarioClient({
           Nuevo turno
         </Button>
       </div>
+
+      <BannerHoy cantidad={cantidadTurnosHoy} />
 
       {servicios.length === 0 && (
         <Card className="text-sm text-texto-secundario">
@@ -182,7 +186,7 @@ export function CalendarioClient({
             turnos={(porDia.get(dia) ?? []).filter((t) =>
               vista === "mes" ? t.estado !== "cancelado" : true
             )}
-            mostrarEncabezado={vista !== "dia"}
+            mostrarEncabezado
             atenuado={vista === "mes" && !esDelMesActual(dia, mesActual)}
             compacto={vista === "mes"}
             onVerTurno={setTurnoAbierto}
@@ -207,6 +211,31 @@ export function CalendarioClient({
           />
         </Modal>
       )}
+    </div>
+  );
+}
+
+function BannerHoy({ cantidad }: { cantidad: number }) {
+  if (cantidad > 0) {
+    return (
+      <div className="flex items-center gap-3 rounded-lg border border-verde/30 bg-verde/10 px-4 py-3">
+        <PartyPopper size={18} className="text-verde shrink-0" />
+        <p className="text-sm text-texto">
+          <span className="font-medium text-verde">
+            ¡Hoy el taller tiene {cantidad} {cantidad === 1 ? "turno" : "turnos"}!
+          </span>{" "}
+          Buen ritmo para el día.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-borde bg-panel-2 px-4 py-3">
+      <CalendarX size={18} className="text-texto-secundario shrink-0" />
+      <p className="text-sm text-texto-secundario">
+        Hoy todavía no hay turnos agendados.
+      </p>
     </div>
   );
 }
