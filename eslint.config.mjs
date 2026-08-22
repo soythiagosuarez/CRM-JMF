@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Script de arranque para el dev server en este entorno local
+    // (necesita require() por diseño, no es parte de la app).
+    "dev-wrapper.cjs",
   ]),
 ]);
 

@@ -3,8 +3,10 @@
   "configurations": [
     {
       "name": "jmf-dev",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeExecutable": "/Users/thiagosuarez/.local/node/bin/node",
+      "runtimeArgs": [
+        "/Users/thiagosuarez/Desktop/Centro de operaciones JMF/dev-wrapper.cjs"
+      ],
       "port": 3000
     }
   ]
