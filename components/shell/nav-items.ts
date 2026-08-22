@@ -34,16 +34,16 @@ export const navGroups: NavGroup[] = [
     items: [
       { href: "/", label: "Inicio", icon: LayoutDashboard },
       { href: "/agenda", label: "Agenda", icon: CalendarDays },
-      { href: "/autos", label: "Gestión de autos", icon: Car },
       { href: "/leads", label: "Leads / Presupuestos", icon: UserSearch },
+      { href: "/finanzas", label: "Finanzas", icon: Wallet },
     ],
   },
   {
     titulo: "Marcas",
     items: [
-      { href: "/finanzas", label: "Finanzas", icon: Wallet },
-      { href: "/shop", label: "Shop", icon: ShoppingBag },
-      { href: "/classmotor", label: "Classmotor", icon: Gauge },
+      { href: "/autos", label: "Gestión Detailing", icon: Car },
+      { href: "/shop", label: "Gestión de Shop", icon: ShoppingBag },
+      { href: "/classmotor", label: "Gestión Classmotor", icon: Gauge },
     ],
   },
   {

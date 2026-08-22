@@ -107,7 +107,7 @@ export function TableroClient({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="font-display text-2xl font-semibold text-texto">Gestión de autos</h1>
+        <h1 className="font-display text-2xl font-semibold text-texto">Gestión Detailing</h1>
         <p className="text-sm text-texto-secundario mt-1">
           Tablero de fases. Arrastrá las tarjetas para avanzar un auto — no se puede volver
           para atrás.

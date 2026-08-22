@@ -65,7 +65,7 @@ export function TableroClassmotorClient({ autos }: { autos: AutoClassmotor[] }) 
         <div className="flex items-center gap-3">
           <Image src="/brands/classmotor.png" alt="" width={44} height={44} />
           <div>
-            <h1 className="font-display text-2xl font-semibold text-texto">Classmotor</h1>
+            <h1 className="font-display text-2xl font-semibold text-texto">Gestión Classmotor</h1>
             <p className="text-sm text-texto-secundario mt-1">
               Fichas de auto por estado, con la ganancia calculada. Arrastrá para avanzar — no
               se puede volver atrás.

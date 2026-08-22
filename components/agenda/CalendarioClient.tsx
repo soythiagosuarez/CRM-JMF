@@ -2,12 +2,14 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, Plus, PartyPopper, CalendarX } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Gauge, PartyPopper, CalendarX } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { TurnoForm } from "./TurnoForm";
 import { TurnoPopup } from "./TurnoPopup";
+import { AutoForm as AutoClassmotorForm } from "@/components/classmotor/AutoForm";
+import { crearAutoClassmotor } from "@/app/(app)/classmotor/actions";
 import {
   rangoMes,
   rangoSemana,
@@ -52,6 +54,7 @@ export function CalendarioClient({
   const router = useRouter();
   const [turnoAbierto, setTurnoAbierto] = useState<TurnoConDatos | null>(null);
   const [fechaNuevoTurno, setFechaNuevoTurno] = useState<string | null>(null);
+  const [ingresandoClassmotor, setIngresandoClassmotor] = useState(false);
 
   const porDia = useMemo(() => {
     const mapa = new Map<string, TurnoConDatos[]>();
@@ -110,10 +113,16 @@ export function CalendarioClient({
             Turnos de servicio confirmados. Lun a vie 9–18 · Sáb 10–13.
           </p>
         </div>
-        <Button onClick={() => setFechaNuevoTurno(fecha)}>
-          <Plus size={16} />
-          Nuevo turno
-        </Button>
+        <div className="flex gap-2">
+          <Button variante="secundario" onClick={() => setIngresandoClassmotor(true)}>
+            <Gauge size={16} />
+            Ingresar auto Classmotor
+          </Button>
+          <Button onClick={() => setFechaNuevoTurno(fecha)}>
+            <Plus size={16} />
+            Nuevo turno detailing
+          </Button>
+        </div>
       </div>
 
       <BannerHoy cantidad={cantidadTurnosHoy} />
@@ -201,13 +210,23 @@ export function CalendarioClient({
       )}
 
       {fechaNuevoTurno && (
-        <Modal titulo="Nuevo turno" onCerrar={() => setFechaNuevoTurno(null)}>
+        <Modal titulo="Nuevo turno detailing" onCerrar={() => setFechaNuevoTurno(null)}>
           <TurnoForm
             clientes={clientes}
             servicios={servicios}
             fechaInicial={fechaNuevoTurno}
             onCancelar={() => setFechaNuevoTurno(null)}
             onGuardado={() => setFechaNuevoTurno(null)}
+          />
+        </Modal>
+      )}
+
+      {ingresandoClassmotor && (
+        <Modal titulo="Ingresar auto Classmotor" onCerrar={() => setIngresandoClassmotor(false)}>
+          <AutoClassmotorForm
+            accion={crearAutoClassmotor}
+            onCancelar={() => setIngresandoClassmotor(false)}
+            onGuardado={() => setIngresandoClassmotor(false)}
           />
         </Modal>
       )}
