@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import { obtenerCliente } from "@/lib/data/clientes";
+import { listarOrdenesPorCliente } from "@/lib/data/ordenes";
+import { listarServicios } from "@/lib/data/servicios";
 import { FichaClienteClient } from "@/components/clientes/FichaClienteClient";
 
 export default async function ClientePage({
@@ -12,5 +14,16 @@ export default async function ClientePage({
 
   if (!cliente) notFound();
 
-  return <FichaClienteClient cliente={cliente} />;
+  const [historial, servicios] = await Promise.all([
+    listarOrdenesPorCliente(id),
+    listarServicios(),
+  ]);
+
+  return (
+    <FichaClienteClient
+      cliente={cliente}
+      historial={historial}
+      servicios={servicios.filter((s) => s.activo)}
+    />
+  );
 }

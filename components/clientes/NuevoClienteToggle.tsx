@@ -14,18 +14,21 @@ export function NuevoClienteToggle() {
     return (
       <Button onClick={() => setAbierto(true)}>
         <Plus size={16} />
-        Nuevo cliente
+        Cargar cliente existente
       </Button>
     );
   }
 
   return (
     <Card className="w-full">
-      <CardHeader title="Nuevo cliente" />
+      <CardHeader
+        title="Cargar cliente existente"
+        subtitle="Para migrar contactos de tu Excel, WhatsApp o libreta. Los clientes nuevos se cargan solos al agendarles un turno en Agenda."
+      />
       <ClienteForm
         accion={crearCliente}
         onCancelar={() => setAbierto(false)}
-        textoBoton="Crear cliente"
+        textoBoton="Cargar cliente"
       />
     </Card>
   );

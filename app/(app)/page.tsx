@@ -30,7 +30,11 @@ export default function InicioPage() {
 
       {/* KPIs */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Kpi etiqueta="Autos en el taller" valor={String(kpisMock.autosEnTaller)} />
+        <Kpi
+          etiqueta="Autos en el taller"
+          valor={String(kpisMock.autosEnTaller)}
+          enlace={{ href: "/autos", texto: "Gestionar autos" }}
+        />
         <Kpi etiqueta="Ingresos del mes" valor={formatARS(kpisMock.ingresosMes)} tono="positivo" />
         <Kpi etiqueta="Egresos del mes" valor={formatARS(kpisMock.egresosMes)} tono="negativo" />
         <Kpi

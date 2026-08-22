@@ -38,17 +38,38 @@ async function enriquecer(ordenes: OrdenCruda[]): Promise<OrdenConDatos[]> {
   }));
 }
 
-/** Todas las órdenes activas (no entregadas) + las entregadas recientes, para el tablero. */
+const SELECT_ENRIQUECIDO =
+  "*, clientes(nombre_completo, telefono), vehiculos(marca,modelo,patente), servicios(nombre, fases)";
+
+/**
+ * Órdenes para el tablero: todas las activas, más las entregadas SOLO del
+ * día de hoy (las de días anteriores ya no se muestran en el tablero,
+ * quedan en el historial del cliente).
+ */
 export async function listarOrdenes(): Promise<OrdenConDatos[]> {
+  const supabase = await createClient();
+  const hoy = new Date().toISOString().slice(0, 10);
+
+  const { data, error } = await supabase
+    .from("ordenes")
+    .select(SELECT_ENRIQUECIDO)
+    .or(`estado.neq.entregado,fecha_entrega.eq.${hoy}`)
+    .order("fecha_ingreso", { ascending: true });
+
+  if (error) throw new Error("No se pudieron cargar las órdenes: " + error.message);
+  return enriquecer(data as unknown as OrdenCruda[]);
+}
+
+/** Historial de órdenes de un cliente (para su ficha), más recientes primero. */
+export async function listarOrdenesPorCliente(clienteId: string): Promise<OrdenConDatos[]> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("ordenes")
-    .select(
-      "*, clientes(nombre_completo, telefono), vehiculos(marca,modelo,patente), servicios(nombre, fases)"
-    )
-    .order("fecha_ingreso", { ascending: true });
+    .select(SELECT_ENRIQUECIDO)
+    .eq("cliente_id", clienteId)
+    .order("fecha_ingreso", { ascending: false });
 
-  if (error) throw new Error("No se pudieron cargar las órdenes: " + error.message);
+  if (error) throw new Error("No se pudo cargar el historial: " + error.message);
   return enriquecer(data as unknown as OrdenCruda[]);
 }

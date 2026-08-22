@@ -34,15 +34,13 @@ function validarHorario(fecha: string, hora: string): string | null {
   return null;
 }
 
-function leerInput(formData: FormData): TurnoInput | { error: string } {
-  const cliente_id = String(formData.get("cliente_id") ?? "");
-  const vehiculo_id = String(formData.get("vehiculo_id") ?? "");
+function leerDatosComunes(
+  formData: FormData
+): { fecha: string; hora: string; servicios_previstos: string[] } | { error: string } {
   const fecha = String(formData.get("fecha") ?? "");
   const hora = String(formData.get("hora") ?? "");
   const servicios_previstos = formData.getAll("servicios_previstos").map(String);
 
-  if (!cliente_id) return { error: "Elegí un cliente." };
-  if (!vehiculo_id) return { error: "Elegí un vehículo." };
   if (!fecha || !hora) return { error: "Cargá fecha y hora." };
   if (servicios_previstos.length === 0) {
     return { error: "Elegí al menos un servicio previsto." };
@@ -51,22 +49,88 @@ function leerInput(formData: FormData): TurnoInput | { error: string } {
   const errorHorario = validarHorario(fecha, hora);
   if (errorHorario) return { error: errorHorario };
 
-  return { cliente_id, vehiculo_id, fecha, hora, servicios_previstos };
+  return { fecha, hora, servicios_previstos };
 }
 
+/**
+ * Alta de turno. Soporta dos modos (ver feedback de producto: cargar un
+ * turno para un cliente que todavía no existe no debería obligar a pasar
+ * antes por Clientes):
+ * - "existente": cliente_id y vehiculo_id ya cargados.
+ * - "nuevo": crea el cliente y su vehículo en el mismo paso y los conecta
+ *   con el turno. Quedan disponibles después en Clientes sin pasos extra.
+ */
 export async function crearTurno(
   _prevState: EstadoTurnoForm,
   formData: FormData
 ): Promise<EstadoTurnoForm> {
-  const input = leerInput(formData);
-  if ("error" in input) return { error: input.error };
+  const comunes = leerDatosComunes(formData);
+  if ("error" in comunes) return { error: comunes.error };
 
   const supabase = await createClient();
+  const modo = String(formData.get("modo") ?? "existente");
+
+  let cliente_id: string;
+  let vehiculo_id: string;
+
+  if (modo === "nuevo") {
+    const nombre_completo = String(formData.get("nombre_completo") ?? "").trim();
+    if (!nombre_completo) return { error: "Cargá el nombre del cliente nuevo." };
+
+    const marca = String(formData.get("marca") ?? "").trim();
+    const modelo = String(formData.get("modelo") ?? "").trim();
+    if (!marca && !modelo) {
+      return { error: "Cargá al menos marca o modelo del vehículo." };
+    }
+
+    const { data: cliente, error: errorCliente } = await supabase
+      .from("clientes")
+      .insert({
+        nombre_completo,
+        telefono: String(formData.get("telefono") ?? "").trim() || null,
+        email: String(formData.get("email") ?? "").trim() || null,
+        como_llego: String(formData.get("como_llego") ?? "").trim() || null,
+        notas: String(formData.get("notas") ?? "").trim() || null,
+      })
+      .select("id")
+      .single();
+    if (errorCliente) return { error: "No se pudo crear el cliente: " + errorCliente.message };
+
+    const anioRaw = String(formData.get("anio") ?? "").trim();
+    const anio = anioRaw ? Number(anioRaw) : null;
+    const { data: vehiculo, error: errorVehiculo } = await supabase
+      .from("vehiculos")
+      .insert({
+        cliente_id: cliente.id,
+        marca: marca || null,
+        modelo: modelo || null,
+        anio: anio && Number.isFinite(anio) ? anio : null,
+        patente: String(formData.get("patente") ?? "").trim().toUpperCase() || null,
+        color: String(formData.get("color") ?? "").trim() || null,
+      })
+      .select("id")
+      .single();
+    if (errorVehiculo) {
+      return { error: "No se pudo crear el vehículo: " + errorVehiculo.message };
+    }
+
+    cliente_id = cliente.id;
+    vehiculo_id = vehiculo.id;
+  } else {
+    cliente_id = String(formData.get("cliente_id") ?? "");
+    vehiculo_id = String(formData.get("vehiculo_id") ?? "");
+    if (!cliente_id) return { error: "Elegí un cliente." };
+    if (!vehiculo_id) return { error: "Elegí un vehículo." };
+  }
+
+  const input: TurnoInput = { cliente_id, vehiculo_id, ...comunes };
   const { error } = await supabase.from("turnos").insert({ ...input, estado: "agendado" });
 
   if (error) return { error: "No se pudo crear el turno: " + error.message };
 
   revalidatePath("/agenda");
+  revalidatePath("/clientes");
+  revalidatePath("/autos");
   return { ok: true };
 }
 
@@ -131,4 +195,5 @@ export async function cancelarTurno(id: string) {
     .eq("id", id);
   if (error) throw new Error(error.message);
   revalidatePath("/agenda");
+  revalidatePath("/autos");
 }

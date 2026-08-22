@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import type { Entrega, FlagOrden, MedioPago, MonedaPago } from "@/lib/types/orden";
+import type { Entrega, EstadoOrden, FlagOrden, MedioPago, MonedaPago } from "@/lib/types/orden";
 
 async function obtenerFasesServicio(servicioId: string): Promise<string[]> {
   const supabase = await createClient();
@@ -70,6 +70,41 @@ export async function retrocederFase(ordenId: string) {
       fase_actual: fases[indiceActual - 1],
       estado: orden.estado === "terminado" ? "en_proceso" : orden.estado,
     })
+    .eq("id", ordenId);
+  if (errorUpdate) throw new Error(errorUpdate.message);
+
+  revalidatePath("/autos");
+}
+
+/**
+ * Mueve una orden a otra columna del tablero por drag & drop
+ * (en_cola / en_proceso / terminado). "entregado" no se mueve así: pide
+ * el tipo de entrega, ver marcarEntrega.
+ */
+export async function moverOrdenEstado(
+  ordenId: string,
+  nuevoEstado: Exclude<EstadoOrden, "entregado">
+) {
+  const supabase = await createClient();
+  const { data: orden, error } = await supabase
+    .from("ordenes")
+    .select("servicio_principal_id, fase_actual")
+    .eq("id", ordenId)
+    .single();
+  if (error) throw new Error(error.message);
+
+  const actualizacion: { estado: string; fase_actual?: string | null } = {
+    estado: nuevoEstado,
+  };
+
+  if (nuevoEstado === "en_proceso" && !orden.fase_actual) {
+    const fases = await obtenerFasesServicio(orden.servicio_principal_id);
+    actualizacion.fase_actual = fases[0] ?? null;
+  }
+
+  const { error: errorUpdate } = await supabase
+    .from("ordenes")
+    .update(actualizacion)
     .eq("id", ordenId);
   if (errorUpdate) throw new Error(errorUpdate.message);
 

@@ -146,3 +146,45 @@ export async function eliminarVehiculo(clienteId: string, vehiculoId: string) {
   if (error) throw new Error(error.message);
   revalidatePath(`/clientes/${clienteId}`);
 }
+
+/**
+ * Carga un servicio ya hecho al historial de un cliente/vehículo que se
+ * está migrando desde afuera (Excel, WhatsApp, libreta). Crea la Orden
+ * directamente, sin turno (turno_id null) y ya entregada.
+ */
+export async function registrarServicioHistorico(
+  clienteId: string,
+  vehiculoId: string,
+  _prevState: EstadoFormulario,
+  formData: FormData
+): Promise<EstadoFormulario> {
+  const servicio_principal_id = String(formData.get("servicio_id") ?? "");
+  const fecha = String(formData.get("fecha") ?? "").trim();
+  const precioRaw = String(formData.get("precio_total") ?? "").trim();
+
+  if (!servicio_principal_id) return { error: "Elegí el servicio realizado." };
+  if (!fecha) return { error: "Cargá la fecha en que se hizo." };
+
+  const precio_total = precioRaw ? Number(precioRaw) : null;
+  if (precioRaw && (!Number.isFinite(precio_total) || precio_total! < 0)) {
+    return { error: "El precio no es válido." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("ordenes").insert({
+    cliente_id: clienteId,
+    vehiculo_id: vehiculoId,
+    turno_id: null,
+    servicio_principal_id,
+    servicios_adicionales: [],
+    precio_total,
+    estado: "entregado",
+    fecha_ingreso: fecha,
+    fecha_entrega: fecha,
+  });
+
+  if (error) return { error: "No se pudo cargar el historial: " + error.message };
+
+  revalidatePath(`/clientes/${clienteId}`);
+  return { ok: true };
+}
