@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState, useTransition } from "react";
-import { MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { MessageCircle, ChevronRight } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -14,7 +14,6 @@ import {
 } from "@/lib/whatsapp";
 import {
   avanzarFase,
-  retrocederFase,
   toggleFlag,
   actualizarPrecio,
   marcarCobrado,
@@ -74,16 +73,16 @@ export function OrdenModal({
             </div>
             <div className="flex gap-2">
               <Button
-                variante="secundario"
-                disabled={isPending || indiceFase <= 0}
-                onClick={() => startTransition(() => retrocederFase(orden.id))}
-              >
-                <ChevronLeft size={14} />
-                Anterior
-              </Button>
-              <Button
                 disabled={isPending || orden.estado === "terminado"}
-                onClick={() => startTransition(() => avanzarFase(orden.id))}
+                onClick={() => {
+                  const mensaje = esUltimaFase
+                    ? `¿Confirmás que el trabajo de ${orden.cliente_nombre} está terminado?`
+                    : `¿Confirmás que ${orden.cliente_nombre} pasó a la fase "${
+                        orden.servicio_principal_fases[indiceFase + 1]
+                      }"? No se puede volver a la fase anterior.`;
+                  if (!confirm(mensaje)) return;
+                  startTransition(() => avanzarFase(orden.id));
+                }}
               >
                 {esUltimaFase ? "Marcar terminado" : "Avanzar fase"}
                 <ChevronRight size={14} />
@@ -159,16 +158,25 @@ export function OrdenModal({
               <Button
                 variante="secundario"
                 disabled={isPending}
-                onClick={() => startTransition(() => marcarEntrega(orden.id, "retira"))}
+                onClick={() => {
+                  if (!confirm(`¿Confirmás la entrega a ${orden.cliente_nombre} (retira)?`)) return;
+                  startTransition(() => marcarEntrega(orden.id, "retira"));
+                }}
               >
                 Retira el cliente
               </Button>
               <Button
                 variante="secundario"
                 disabled={isPending}
-                onClick={() =>
-                  startTransition(() => marcarEntrega(orden.id, "puerta_a_puerta"))
-                }
+                onClick={() => {
+                  if (
+                    !confirm(
+                      `¿Confirmás la entrega a ${orden.cliente_nombre} (puerta a puerta)?`
+                    )
+                  )
+                    return;
+                  startTransition(() => marcarEntrega(orden.id, "puerta_a_puerta"));
+                }}
               >
                 Puerta a puerta
               </Button>

@@ -13,12 +13,21 @@ import type { TurnoConDatos } from "@/lib/types/turno";
 type ColumnaId = "esperando_ingreso" | EstadoOrden;
 
 const COLUMNAS: { id: ColumnaId; titulo: string; color: string }[] = [
-  { id: "esperando_ingreso", titulo: "Esperando el ingreso", color: "border-t-texto-secundario" },
+  { id: "esperando_ingreso", titulo: "Esperando el ingreso", color: "border-t-texto" },
   { id: "en_cola", titulo: "En cola", color: "border-t-texto-secundario" },
   { id: "en_proceso", titulo: "En proceso", color: "border-t-rojo" },
   { id: "terminado", titulo: "Terminado", color: "border-t-dorado" },
   { id: "entregado", titulo: "Entregado", color: "border-t-verde" },
 ];
+
+// Orden del flujo: el tablero solo se mueve hacia adelante (§ feedback UX).
+const INDICE_COLUMNA: Record<ColumnaId, number> = {
+  esperando_ingreso: 0,
+  en_cola: 1,
+  en_proceso: 2,
+  terminado: 3,
+  entregado: 4,
+};
 
 const FLAG_LABEL: Record<string, string> = {
   esperando_repuesto_producto: "Esperando repuesto",
@@ -29,6 +38,8 @@ const FLAG_LABEL: Record<string, string> = {
 interface Arrastrado {
   id: string;
   origen: "turno" | "orden";
+  indiceOrigen: number;
+  nombreCliente: string;
 }
 
 export function TableroClient({
@@ -41,6 +52,7 @@ export function TableroClient({
   const [ordenAbierta, setOrdenAbierta] = useState<OrdenConDatos | null>(null);
   const [turnoAbierto, setTurnoAbierto] = useState<TurnoConDatos | null>(null);
   const [columnaSobrevolada, setColumnaSobrevolada] = useState<ColumnaId | null>(null);
+  const [arrastrando, setArrastrando] = useState<Arrastrado | null>(null);
   const [, startTransition] = useTransition();
 
   const porEstado = new Map<EstadoOrden, OrdenConDatos[]>();
@@ -58,25 +70,37 @@ export function TableroClient({
 
   const totalItems = ordenes.length + esperandoIngreso.length;
 
+  const esDestinoValido = (item: Arrastrado | null, columna: ColumnaId): boolean => {
+    if (!item) return true;
+    if (item.origen === "turno") return columna === "en_cola";
+    return INDICE_COLUMNA[columna] > item.indiceOrigen;
+  };
+
   const onDrop = (columna: ColumnaId, e: React.DragEvent) => {
     e.preventDefault();
     setColumnaSobrevolada(null);
     const raw = e.dataTransfer.getData("application/json");
+    setArrastrando(null);
     if (!raw) return;
     const item: Arrastrado = JSON.parse(raw);
 
+    if (!esDestinoValido(item, columna)) return;
+
     if (item.origen === "turno") {
-      if (columna !== "en_cola") return; // un turno solo puede pasar a "En cola"
+      if (!confirm(`¿Confirmás que ${item.nombreCliente} ingresó al taller?`)) return;
       startTransition(() => marcarIngresado(item.id));
       return;
     }
 
-    if (columna === "esperando_ingreso") return; // una orden ya creada no vuelve para atrás
     if (columna === "entregado") {
       const orden = ordenes.find((o) => o.id === item.id);
       if (orden) setOrdenAbierta(orden); // la entrega pide retira/puerta a puerta, se elige en el modal
       return;
     }
+    if (columna === "esperando_ingreso") return; // ya validado por esDestinoValido, guarda para TS
+
+    const columnaTitulo = COLUMNAS.find((c) => c.id === columna)?.titulo ?? columna;
+    if (!confirm(`¿Mover el auto de ${item.nombreCliente} a "${columnaTitulo}"?`)) return;
     startTransition(() => moverOrdenEstado(item.id, columna));
   };
 
@@ -85,7 +109,8 @@ export function TableroClient({
       <div>
         <h1 className="font-display text-2xl font-semibold text-texto">Gestión de autos</h1>
         <p className="text-sm text-texto-secundario mt-1">
-          Tablero de fases. Arrastrá las tarjetas entre columnas para mover un auto.
+          Tablero de fases. Arrastrá las tarjetas para avanzar un auto — no se puede volver
+          para atrás.
         </p>
       </div>
 
@@ -101,18 +126,20 @@ export function TableroClient({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {COLUMNAS.map((col) => {
             const items = col.id === "esperando_ingreso" ? esperandoIngreso : porEstado.get(col.id) ?? [];
+            const destinoValido = esDestinoValido(arrastrando, col.id);
             return (
               <div
                 key={col.id}
                 onDragOver={(e) => {
+                  if (!destinoValido) return;
                   e.preventDefault();
                   setColumnaSobrevolada(col.id);
                 }}
                 onDragLeave={() => setColumnaSobrevolada((c) => (c === col.id ? null : c))}
                 onDrop={(e) => onDrop(col.id, e)}
-                className={`flex flex-col gap-3 rounded-lg border-t-4 ${col.color} p-1 transition-colors ${
+                className={`flex flex-col gap-3 rounded-lg border-t-4 ${col.color} p-1 transition-opacity ${
                   columnaSobrevolada === col.id ? "bg-panel-2/60" : ""
-                }`}
+                } ${arrastrando && !destinoValido ? "opacity-30" : ""}`}
               >
                 <div className="flex items-center justify-between px-1">
                   <h2 className="text-sm font-semibold text-texto-secundario uppercase tracking-wide">
@@ -126,12 +153,17 @@ export function TableroClient({
                         <Card
                           key={t.id}
                           draggable
-                          onDragStart={(e) =>
-                            e.dataTransfer.setData(
-                              "application/json",
-                              JSON.stringify({ id: t.id, origen: "turno" })
-                            )
-                          }
+                          onDragStart={(e) => {
+                            const data: Arrastrado = {
+                              id: t.id,
+                              origen: "turno",
+                              indiceOrigen: 0,
+                              nombreCliente: t.cliente_nombre,
+                            };
+                            e.dataTransfer.setData("application/json", JSON.stringify(data));
+                            setArrastrando(data);
+                          }}
+                          onDragEnd={() => setArrastrando(null)}
                           onClick={() => setTurnoAbierto(t)}
                           className="cursor-grab active:cursor-grabbing hover:border-rojo/40 border-dashed"
                         >
@@ -149,15 +181,22 @@ export function TableroClient({
                     : (items as OrdenConDatos[]).map((o) => (
                         <Card
                           key={o.id}
-                          draggable
-                          onDragStart={(e) =>
-                            e.dataTransfer.setData(
-                              "application/json",
-                              JSON.stringify({ id: o.id, origen: "orden" })
-                            )
-                          }
+                          draggable={col.id !== "entregado"}
+                          onDragStart={(e) => {
+                            const data: Arrastrado = {
+                              id: o.id,
+                              origen: "orden",
+                              indiceOrigen: INDICE_COLUMNA[o.estado],
+                              nombreCliente: o.cliente_nombre,
+                            };
+                            e.dataTransfer.setData("application/json", JSON.stringify(data));
+                            setArrastrando(data);
+                          }}
+                          onDragEnd={() => setArrastrando(null)}
                           onClick={() => setOrdenAbierta(o)}
-                          className="cursor-grab active:cursor-grabbing hover:border-rojo/40"
+                          className={`hover:border-rojo/40 ${
+                            col.id !== "entregado" ? "cursor-grab active:cursor-grabbing" : ""
+                          }`}
                         >
                           <p className="text-sm text-texto font-medium truncate">
                             {o.cliente_nombre}

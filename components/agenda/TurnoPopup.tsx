@@ -71,6 +71,7 @@ export function TurnoPopup({
             <Button
               disabled={isPending}
               onClick={() => {
+                if (!confirm(`¿Confirmás que ${turno.cliente_nombre} ingresó al taller?`)) return;
                 startTransition(async () => {
                   await marcarIngresado(turno.id);
                   onCerrar();

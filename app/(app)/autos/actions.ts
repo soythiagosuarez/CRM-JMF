@@ -51,31 +51,6 @@ export async function avanzarFase(ordenId: string) {
   revalidatePath("/autos");
 }
 
-export async function retrocederFase(ordenId: string) {
-  const supabase = await createClient();
-  const { data: orden, error } = await supabase
-    .from("ordenes")
-    .select("servicio_principal_id, fase_actual, estado")
-    .eq("id", ordenId)
-    .single();
-  if (error) throw new Error(error.message);
-
-  const fases = await obtenerFasesServicio(orden.servicio_principal_id);
-  const indiceActual = fases.indexOf(orden.fase_actual ?? "");
-  if (indiceActual <= 0) return;
-
-  const { error: errorUpdate } = await supabase
-    .from("ordenes")
-    .update({
-      fase_actual: fases[indiceActual - 1],
-      estado: orden.estado === "terminado" ? "en_proceso" : orden.estado,
-    })
-    .eq("id", ordenId);
-  if (errorUpdate) throw new Error(errorUpdate.message);
-
-  revalidatePath("/autos");
-}
-
 /**
  * Mueve una orden a otra columna del tablero por drag & drop
  * (en_cola / en_proceso / terminado). "entregado" no se mueve así: pide
