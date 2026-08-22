@@ -1,5 +1,7 @@
-import { EnConstruccion } from "@/components/shell/EnConstruccion";
+import { listarOrdenes } from "@/lib/data/ordenes";
+import { TableroClient } from "@/components/autos/TableroClient";
 
-export default function Page() {
-  return <EnConstruccion titulo="Autos / Órdenes" />;
+export default async function AutosPage() {
+  const ordenes = await listarOrdenes();
+  return <TableroClient ordenes={ordenes} />;
 }

@@ -70,16 +70,57 @@ export async function crearTurno(
   return { ok: true };
 }
 
+/**
+ * Marca el turno como ingresado y crea la Orden correspondiente
+ * (ESPECIFICACION.md §6.4: "Cuando el auto ingresa → se crea/activa la
+ * Orden"). El primer servicio previsto queda como principal (maneja el
+ * tablero de fases); el resto entra como adicional sin precio todavía
+ * (se carga desde Autos / Órdenes).
+ */
 export async function marcarIngresado(id: string) {
   const supabase = await createClient();
-  const { error } = await supabase
+
+  const { data: turno, error: errorTurno } = await supabase
+    .from("turnos")
+    .select("cliente_id, vehiculo_id, servicios_previstos")
+    .eq("id", id)
+    .single();
+  if (errorTurno) throw new Error(errorTurno.message);
+
+  const [principalId, ...adicionalesIds] = turno.servicios_previstos as string[];
+  const { data: servicioPrincipal, error: errorServicio } = await supabase
+    .from("servicios")
+    .select("fases")
+    .eq("id", principalId)
+    .single();
+  if (errorServicio) throw new Error(errorServicio.message);
+
+  const fases = (servicioPrincipal?.fases as string[]) ?? [];
+  const hoy = new Date().toISOString().slice(0, 10);
+
+  const { error: errorOrden } = await supabase.from("ordenes").insert({
+    cliente_id: turno.cliente_id,
+    vehiculo_id: turno.vehiculo_id,
+    turno_id: id,
+    servicio_principal_id: principalId,
+    servicios_adicionales: adicionalesIds.map((servicio_id) => ({
+      servicio_id,
+      precio: 0,
+    })),
+    fase_actual: fases[0] ?? null,
+    estado: "en_cola",
+    fecha_ingreso: hoy,
+  });
+  if (errorOrden) throw new Error(errorOrden.message);
+
+  const { error: errorEstadoTurno } = await supabase
     .from("turnos")
     .update({ estado: "ingresado" })
     .eq("id", id);
-  if (error) throw new Error(error.message);
-  // TODO: cuando exista el módulo Autos / Órdenes, acá se crea la Orden
-  // correspondiente (ver ESPECIFICACION.md §6.4 y §6.5).
+  if (errorEstadoTurno) throw new Error(errorEstadoTurno.message);
+
   revalidatePath("/agenda");
+  revalidatePath("/autos");
 }
 
 export async function cancelarTurno(id: string) {

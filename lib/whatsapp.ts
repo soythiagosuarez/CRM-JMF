@@ -11,6 +11,14 @@ export function mensajeCambioFase(cliente: string, auto: string, fase: string): 
   return `Hola ${cliente}, te contamos que tu ${auto} ya pasó a la etapa de ${fase}. Cualquier cosa quedamos a disposición. — JMF Detailing`;
 }
 
+export function mensajeListoRetira(cliente: string, auto: string): string {
+  return `Hola ${cliente}, tu ${auto} ya está terminado y listo para retirar. Coordinamos cuando quieras pasar. — JMF Detailing`;
+}
+
+export function mensajeListoPuertaAPuerta(cliente: string, auto: string): string {
+  return `Hola ${cliente}, tu ${auto} ya está terminado. Coordinamos el día y horario para llevártelo. — JMF Detailing`;
+}
+
 export function mensajeMantenimiento(cliente: string, servicio: string): string {
   return `Hola ${cliente}, se acerca el mantenimiento de tu ${servicio}. Cuando quieras coordinamos un turno para dejarlo impecable. — JMF Detailing`;
 }
