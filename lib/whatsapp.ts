@@ -28,10 +28,13 @@ export function mensajeRenovacion(cliente: string, servicio: string, auto: strin
 }
 
 /**
- * Presupuesto formateado para WhatsApp (negrita con *asteriscos*, emojis,
- * y una tabla en bloque monoespaciado con tres backticks). A diferencia
- * de las plantillas de aviso, acá el precio va incluido a propósito:
- * es justamente lo que se está mandando.
+ * Presupuesto formateado para WhatsApp (negrita con *asteriscos* y una
+ * tabla en bloque monoespaciado con tres backticks). Sin emojis a
+ * propósito: en las pruebas mostraban "�" en WhatsApp Web con la sesión
+ * recién abierta (assets de emoji sin cargar todavía) — se puede volver
+ * a agregar si se confirma que en un teléfono real anda bien.
+ * A diferencia de las plantillas de aviso, acá el precio va incluido
+ * a propósito: es justamente lo que se está mandando.
  */
 export function mensajePresupuesto(datos: {
   nombreContacto: string;
@@ -53,20 +56,20 @@ export function mensajePresupuesto(datos: {
     .join("\n");
 
   const lineas = [
-    `🚗 *Presupuesto — JMF Detailing*`,
+    `*Presupuesto — JMF Detailing*`,
     ``,
     `Hola ${nombreContacto}! Te dejamos el presupuesto para tu ${vehiculo}.`,
-    queObservo ? `📝 Observado: ${queObservo}` : null,
+    queObservo ? `Observado: ${queObservo}` : null,
     ``,
-    `📋 *Servicios*`,
+    `*Servicios*`,
     "```",
     tabla,
     "```",
-    `💰 *Total: ${formatARS(total)}*`,
-    tiempoEstimado ? `⏱️ Tiempo estimado: ${tiempoEstimado}` : null,
-    validez ? `✅ Válido hasta ${formatFecha(validez)}` : null,
+    `*Total: ${formatARS(total)}*`,
+    tiempoEstimado ? `Tiempo estimado: ${tiempoEstimado}` : null,
+    validez ? `Válido hasta ${formatFecha(validez)}` : null,
     ``,
-    `Cualquier consulta quedamos a disposición 🙌`,
+    `Cualquier consulta quedamos a disposición.`,
     `— JMF Detailing`,
   ].filter((l): l is string => l !== null);
 
