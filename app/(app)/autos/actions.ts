@@ -210,17 +210,79 @@ export async function marcarCobrado(
   return { ok: true };
 }
 
+function sumarMeses(fechaISO: string, meses: number): string {
+  const d = new Date(fechaISO + "T00:00:00");
+  d.setMonth(d.getMonth() + meses);
+  return d.toISOString().slice(0, 10);
+}
+
 export async function marcarEntrega(ordenId: string, entrega: Entrega) {
   const supabase = await createClient();
   const hoy = new Date().toISOString().slice(0, 10);
+
+  const { data: orden, error: errorOrden } = await supabase
+    .from("ordenes")
+    .select("cliente_id, vehiculo_id, servicio_principal_id")
+    .eq("id", ordenId)
+    .single();
+  if (errorOrden) throw new Error(errorOrden.message);
+
   const { error } = await supabase
     .from("ordenes")
     .update({ estado: "entregado", entrega, fecha_entrega: hoy })
     .eq("id", ordenId);
   if (error) throw new Error(error.message);
 
-  // TODO: cuando exista el módulo Recordatorios, acá se generan los
-  // recordatorios de mantenimiento/renovación si el servicio es un
-  // tratamiento (ver ESPECIFICACION.md §6.10).
+  // Si el servicio principal es un tratamiento (tiene intervalo de
+  // mantenimiento y/o renovación cargado), se generan los recordatorios
+  // solos al entregar — ESPECIFICACION.md §6.10.
+  const { data: servicio, error: errorServicio } = await supabase
+    .from("servicios")
+    .select("nombre, mantenimiento_intervalo_meses, renovacion_meses")
+    .eq("id", orden.servicio_principal_id)
+    .single();
+  if (errorServicio) throw new Error(errorServicio.message);
+
+  const nuevosRecordatorios: {
+    cliente_id: string;
+    vehiculo_id: string;
+    orden_id: string;
+    tipo: "mantenimiento" | "renovacion";
+    tratamiento: string;
+    fecha_proxima: string;
+    intervalo_meses: number | null;
+  }[] = [];
+
+  if (servicio.mantenimiento_intervalo_meses) {
+    nuevosRecordatorios.push({
+      cliente_id: orden.cliente_id,
+      vehiculo_id: orden.vehiculo_id,
+      orden_id: ordenId,
+      tipo: "mantenimiento",
+      tratamiento: servicio.nombre,
+      fecha_proxima: sumarMeses(hoy, servicio.mantenimiento_intervalo_meses),
+      intervalo_meses: servicio.mantenimiento_intervalo_meses,
+    });
+  }
+  if (servicio.renovacion_meses) {
+    nuevosRecordatorios.push({
+      cliente_id: orden.cliente_id,
+      vehiculo_id: orden.vehiculo_id,
+      orden_id: ordenId,
+      tipo: "renovacion",
+      tratamiento: servicio.nombre,
+      fecha_proxima: sumarMeses(hoy, servicio.renovacion_meses),
+      intervalo_meses: servicio.renovacion_meses,
+    });
+  }
+
+  if (nuevosRecordatorios.length > 0) {
+    const { error: errorRecordatorios } = await supabase
+      .from("recordatorios")
+      .insert(nuevosRecordatorios);
+    if (errorRecordatorios) throw new Error(errorRecordatorios.message);
+    revalidatePath("/recordatorios");
+  }
+
   revalidatePath("/autos");
 }
