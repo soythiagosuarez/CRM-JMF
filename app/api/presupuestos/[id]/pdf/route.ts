@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import { createClient } from "@/lib/supabase/server";
-import { obtenerLead } from "@/lib/data/leads";
+import { obtenerPresupuesto } from "@/lib/data/presupuestos";
 import { formatARS, formatFecha } from "@/lib/format";
+
+export const runtime = "nodejs";
 
 const ROJO_F1 = rgb(232 / 255, 0 / 255, 45 / 255);
 const NEGRO = rgb(0.07, 0.07, 0.07);
@@ -11,19 +12,10 @@ const GRIS = rgb(0.45, 0.45, 0.45);
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  const lead = await obtenerLead(id);
-  if (!lead) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
-  if (!lead.presupuesto) {
-    return NextResponse.json({ error: "Este lead todavía no tiene presupuesto armado" }, { status: 400 });
+  const presupuesto = await obtenerPresupuesto(id);
+  if (!presupuesto) {
+    return NextResponse.json({ error: "Presupuesto no encontrado" }, { status: 404 });
   }
-
-  const supabase = await createClient();
-  const idsServicios = lead.presupuesto.servicios.map((s) => s.servicio_id);
-  const { data: servicios } = await supabase
-    .from("servicios")
-    .select("id, nombre")
-    .in("id", idsServicios);
-  const nombreServicio = new Map((servicios ?? []).map((s) => [s.id as string, s.nombre as string]));
 
   const pdf = await PDFDocument.create();
   const page = pdf.addPage([595, 842]); // A4
@@ -44,16 +36,18 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     y -= 20;
   };
 
-  linea("Cliente", lead.cliente_nombre);
-  if (lead.cliente_telefono) linea("Teléfono", lead.cliente_telefono);
-  linea(
-    "Vehículo",
-    [lead.datos_vehiculo.marca, lead.datos_vehiculo.modelo].filter(Boolean).join(" ") +
-      (lead.datos_vehiculo.patente ? ` · ${lead.datos_vehiculo.patente}` : "") || "—"
-  );
-  linea("Fecha", formatFecha(lead.presupuesto.fecha));
-  linea("Validez", `7 días — hasta ${formatFecha(lead.presupuesto.validez)}`);
-  linea("Tiempo estimado", lead.presupuesto.tiempo_estimado);
+  linea("Contacto", presupuesto.nombre_contacto);
+  if (presupuesto.telefono) linea("Teléfono", presupuesto.telefono);
+
+  const vehiculo = [presupuesto.vehiculo_marca, presupuesto.vehiculo_modelo]
+    .filter(Boolean)
+    .join(" ") + (presupuesto.vehiculo_patente ? ` · ${presupuesto.vehiculo_patente}` : "");
+  if (vehiculo) linea("Vehículo", vehiculo);
+  if (presupuesto.que_observo) linea("Observado", presupuesto.que_observo);
+
+  linea("Fecha", formatFecha(presupuesto.fecha));
+  if (presupuesto.validez) linea("Validez", `7 días — hasta ${formatFecha(presupuesto.validez)}`);
+  if (presupuesto.tiempo_estimado) linea("Tiempo estimado", presupuesto.tiempo_estimado);
 
   y -= 15;
   page.drawLine({
@@ -69,9 +63,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   y -= 18;
 
   let total = 0;
-  for (const item of lead.presupuesto.servicios) {
-    const nombre = nombreServicio.get(item.servicio_id) ?? "Servicio";
-    page.drawText(nombre, { x: marginX, y, size: 11, font: fontRegular, color: NEGRO });
+  for (const item of presupuesto.servicios) {
+    page.drawText(item.nombre, { x: marginX, y, size: 11, font: fontRegular, color: NEGRO });
     page.drawText(formatARS(item.precio), { x: 480, y, size: 11, font: fontRegular, color: NEGRO });
     total += item.precio;
     y -= 20;
@@ -90,15 +83,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
   y -= 60;
   page.drawText(
-    "Presupuesto sujeto a evaluación del vehículo al momento del ingreso. Validez 7 días.",
+    "Presupuesto sujeto a evaluacion del vehiculo al momento del ingreso. Validez 7 dias.",
     { x: marginX, y, size: 9, font: fontRegular, color: GRIS }
   );
 
   const bytes = await pdf.save();
   return new NextResponse(Buffer.from(bytes), {
+    status: 200,
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="presupuesto-${lead.cliente_nombre.replace(/\s+/g, "-")}.pdf"`,
+      "Content-Disposition": `inline; filename="presupuesto-${presupuesto.nombre_contacto.replace(/\s+/g, "-")}.pdf"`,
+      "Cache-Control": "no-store",
     },
   });
 }

@@ -1,20 +1,14 @@
-import { listarLeads } from "@/lib/data/leads";
-import { listarClientesConVehiculos } from "@/lib/data/clientes";
+import { listarPresupuestos } from "@/lib/data/presupuestos";
 import { listarServicios } from "@/lib/data/servicios";
 import { PresupuestosClient } from "@/components/presupuestos/PresupuestosClient";
 
 export default async function PresupuestosPage() {
-  const [leads, clientes, servicios] = await Promise.all([
-    listarLeads(),
-    listarClientesConVehiculos(),
+  const [presupuestos, servicios] = await Promise.all([
+    listarPresupuestos(),
     listarServicios(),
   ]);
 
   return (
-    <PresupuestosClient
-      leads={leads}
-      clientes={clientes}
-      servicios={servicios.filter((s) => s.activo)}
-    />
+    <PresupuestosClient presupuestos={presupuestos} servicios={servicios.filter((s) => s.activo)} />
   );
 }

@@ -5,34 +5,30 @@ import { Plus } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { LeadForm } from "./LeadForm";
-import { LeadModal } from "./LeadModal";
-import { formatFecha } from "@/lib/format";
-import { ESTADO_LEAD_LABEL, ORIGEN_LEAD_LABEL } from "@/lib/types/lead";
-import type { LeadConDatos } from "@/lib/types/lead";
-import type { ClienteConVehiculos } from "@/lib/types/cliente";
+import { PresupuestoForm } from "./PresupuestoForm";
+import { PresupuestoModal } from "./PresupuestoModal";
+import { formatARS, formatFecha } from "@/lib/format";
+import { ESTADO_PRESUPUESTO_LABEL } from "@/lib/types/presupuesto";
+import type { EstadoPresupuesto, Presupuesto } from "@/lib/types/presupuesto";
 import type { Servicio } from "@/lib/types/servicio";
 
-const ESTADO_TONO = {
-  pendiente_presupuesto: "neutro",
-  presupuestado: "premium",
+const ESTADO_TONO: Record<EstadoPresupuesto, "neutro" | "positivo" | "negativo"> = {
+  pendiente: "neutro",
   aceptado: "positivo",
-  perdido: "negativo",
-} as const;
+  rechazado: "negativo",
+};
 
 export function PresupuestosClient({
-  leads,
-  clientes,
+  presupuestos,
   servicios,
 }: {
-  leads: LeadConDatos[];
-  clientes: ClienteConVehiculos[];
+  presupuestos: Presupuesto[];
   servicios: Servicio[];
 }) {
   const [creando, setCreando] = useState(false);
-  const [leadAbiertoId, setLeadAbiertoId] = useState<string | null>(null);
+  const [abiertoId, setAbiertoId] = useState<string | null>(null);
 
-  const leadAbierto = leadAbiertoId ? leads.find((l) => l.id === leadAbiertoId) ?? null : null;
+  const abierto = abiertoId ? presupuestos.find((p) => p.id === abiertoId) ?? null : null;
 
   return (
     <div className="flex flex-col gap-6">
@@ -40,22 +36,22 @@ export function PresupuestosClient({
         <div>
           <h1 className="font-display text-2xl font-semibold text-texto">Presupuestos</h1>
           <p className="text-sm text-texto-secundario mt-1">
-            Quién consultó, qué se observó y el presupuesto armado con PDF.
+            Generador de presupuestos: PDF con la marca y mensaje de WhatsApp listo para
+            enviar. No crea clientes — eso se hace en Agenda cuando el cliente acepta.
           </p>
         </div>
         {!creando && (
           <Button onClick={() => setCreando(true)}>
             <Plus size={16} />
-            Nuevo lead
+            Nuevo presupuesto
           </Button>
         )}
       </div>
 
       {creando && (
         <Card>
-          <CardHeader title="Nuevo lead" />
-          <LeadForm
-            clientes={clientes}
+          <CardHeader title="Nuevo presupuesto" />
+          <PresupuestoForm
             servicios={servicios}
             onCancelar={() => setCreando(false)}
             onGuardado={() => setCreando(false)}
@@ -63,37 +59,40 @@ export function PresupuestosClient({
         </Card>
       )}
 
-      {leads.length === 0 && !creando ? (
+      {presupuestos.length === 0 && !creando ? (
         <Card className="flex flex-col items-center gap-2 py-16 text-center">
-          <p className="text-texto">Todavía no hay leads cargados.</p>
+          <p className="text-texto">Todavía no armaste ningún presupuesto.</p>
           <p className="text-sm text-texto-secundario max-w-sm">
-            Usá &quot;Nuevo lead&quot; para registrar la primera consulta.
+            Usá &quot;Nuevo presupuesto&quot; para generar el primero.
           </p>
         </Card>
       ) : (
         <div className="flex flex-col gap-2">
-          {leads.map((l) => (
-            <Card
-              key={l.id}
-              onClick={() => setLeadAbiertoId(l.id)}
-              className="flex items-center justify-between gap-4 cursor-pointer hover:border-rojo/40"
-            >
-              <div className="min-w-0">
-                <p className="text-sm text-texto font-medium truncate">{l.cliente_nombre}</p>
-                <p className="text-xs text-texto-secundario truncate mt-0.5">
-                  {l.servicios_consultados_nombres.join(", ") || "Sin servicios"} ·{" "}
-                  {ORIGEN_LEAD_LABEL[l.origen]} · {formatFecha(l.created_at)}
-                </p>
-              </div>
-              <Badge tono={ESTADO_TONO[l.estado]}>{ESTADO_LEAD_LABEL[l.estado]}</Badge>
-            </Card>
-          ))}
+          {presupuestos.map((p) => {
+            const total = p.servicios.reduce((acc, s) => acc + s.precio, 0);
+            const vehiculo =
+              [p.vehiculo_marca, p.vehiculo_modelo].filter(Boolean).join(" ") +
+              (p.vehiculo_patente ? ` · ${p.vehiculo_patente}` : "");
+            return (
+              <Card
+                key={p.id}
+                onClick={() => setAbiertoId(p.id)}
+                className="flex items-center justify-between gap-4 cursor-pointer hover:border-rojo/40"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm text-texto font-medium truncate">{p.nombre_contacto}</p>
+                  <p className="text-xs text-texto-secundario truncate mt-0.5">
+                    {vehiculo || "Sin vehículo"} · {formatARS(total)} · {formatFecha(p.fecha)}
+                  </p>
+                </div>
+                <Badge tono={ESTADO_TONO[p.estado]}>{ESTADO_PRESUPUESTO_LABEL[p.estado]}</Badge>
+              </Card>
+            );
+          })}
         </div>
       )}
 
-      {leadAbierto && (
-        <LeadModal lead={leadAbierto} servicios={servicios} onCerrar={() => setLeadAbiertoId(null)} />
-      )}
+      {abierto && <PresupuestoModal presupuesto={abierto} onCerrar={() => setAbiertoId(null)} />}
     </div>
   );
 }

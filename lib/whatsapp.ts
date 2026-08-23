@@ -26,3 +26,49 @@ export function mensajeMantenimiento(cliente: string, servicio: string): string 
 export function mensajeRenovacion(cliente: string, servicio: string, auto: string): string {
   return `Hola ${cliente}, ya se cumple el ciclo de tu ${servicio}. Si querés, coordinamos para renovarlo y mantener tu ${auto} como el primer día. — JMF Detailing`;
 }
+
+/**
+ * Presupuesto formateado para WhatsApp (negrita con *asteriscos*, emojis,
+ * y una tabla en bloque monoespaciado con tres backticks). A diferencia
+ * de las plantillas de aviso, acá el precio va incluido a propósito:
+ * es justamente lo que se está mandando.
+ */
+export function mensajePresupuesto(datos: {
+  nombreContacto: string;
+  vehiculo: string;
+  queObservo: string | null;
+  servicios: { nombre: string; precio: number }[];
+  tiempoEstimado: string | null;
+  validez: string | null;
+  formatARS: (n: number) => string;
+  formatFecha: (f: string) => string;
+}): string {
+  const { nombreContacto, vehiculo, queObservo, servicios, tiempoEstimado, validez, formatARS, formatFecha } =
+    datos;
+
+  const total = servicios.reduce((acc, s) => acc + s.precio, 0);
+  const anchoNombre = Math.max(...servicios.map((s) => s.nombre.length), 10);
+  const tabla = servicios
+    .map((s) => `${s.nombre.padEnd(anchoNombre, " ")}  ${formatARS(s.precio)}`)
+    .join("\n");
+
+  const lineas = [
+    `🚗 *Presupuesto — JMF Detailing*`,
+    ``,
+    `Hola ${nombreContacto}! Te dejamos el presupuesto para tu ${vehiculo}.`,
+    queObservo ? `📝 Observado: ${queObservo}` : null,
+    ``,
+    `📋 *Servicios*`,
+    "```",
+    tabla,
+    "```",
+    `💰 *Total: ${formatARS(total)}*`,
+    tiempoEstimado ? `⏱️ Tiempo estimado: ${tiempoEstimado}` : null,
+    validez ? `✅ Válido hasta ${formatFecha(validez)}` : null,
+    ``,
+    `Cualquier consulta quedamos a disposición 🙌`,
+    `— JMF Detailing`,
+  ].filter((l): l is string => l !== null);
+
+  return lineas.join("\n");
+}
