@@ -32,16 +32,16 @@ export function PresupuestosClient({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl font-semibold text-texto">Presupuestos</h1>
           <p className="text-sm text-texto-secundario mt-1">
-            Generador de presupuestos: PDF con la marca y mensaje de WhatsApp listo para
-            enviar. No crea clientes — eso se hace en Agenda cuando el cliente acepta.
+            Generador de presupuestos: armá uno y mandalo por WhatsApp. No crea clientes —
+            eso se hace en Agenda cuando el cliente acepta.
           </p>
         </div>
         {!creando && (
-          <Button onClick={() => setCreando(true)}>
+          <Button onClick={() => setCreando(true)} className="shrink-0 whitespace-nowrap self-start">
             <Plus size={16} />
             Nuevo presupuesto
           </Button>

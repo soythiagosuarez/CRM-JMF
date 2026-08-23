@@ -8,10 +8,13 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
  * Tarjeta base del sistema: fondo panel #1B1B1B, borde sutil.
  * Todas las pantallas del Centro de Operaciones se arman con esta pieza.
  */
-export function Card({ children, className = "", ...props }: CardProps) {
+export function Card({ children, className = "", onClick, ...props }: CardProps) {
   return (
     <div
-      className={`rounded-xl border border-borde bg-panel p-5 ${className}`}
+      className={`rounded-xl border border-borde bg-panel p-5 ${
+        onClick ? "cursor-pointer" : ""
+      } ${className}`}
+      onClick={onClick}
       {...props}
     >
       {children}

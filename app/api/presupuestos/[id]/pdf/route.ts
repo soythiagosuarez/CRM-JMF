@@ -120,7 +120,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       headers: {
         "Content-Type": "application/pdf",
         "Content-Length": String(bytes.byteLength),
-        "Content-Disposition": `inline; filename="presupuesto-${nombreArchivo}.pdf"`,
+        "Content-Disposition": `attachment; filename="presupuesto-${nombreArchivo}.pdf"`,
         "Cache-Control": "no-store",
       },
     });

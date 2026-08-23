@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import { FileText, MessageCircle, Trash2 } from "lucide-react";
+import { MessageCircle, Trash2 } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -81,42 +81,31 @@ export function PresupuestoModal({
           {presupuesto.validez && <span>Válido hasta {formatFecha(presupuesto.validez)}</span>}
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        {presupuesto.telefono && (
           <a
-            href={`/api/presupuestos/${presupuesto.id}/pdf`}
+            href={linkWhatsapp(
+              presupuesto.telefono,
+              mensajePresupuesto({
+                nombreContacto: presupuesto.nombre_contacto,
+                vehiculo: vehiculo || "vehículo",
+                queObservo: presupuesto.que_observo,
+                servicios: presupuesto.servicios,
+                tiempoEstimado: presupuesto.tiempo_estimado,
+                validez: presupuesto.validez,
+                formatARS,
+                formatFecha,
+              })
+            )}
             target="_blank"
             rel="noopener noreferrer"
+            className="self-start"
           >
-            <Button variante="secundario">
-              <FileText size={14} />
-              Ver PDF
+            <Button>
+              <MessageCircle size={14} />
+              Enviar por WhatsApp
             </Button>
           </a>
-          {presupuesto.telefono && (
-            <a
-              href={linkWhatsapp(
-                presupuesto.telefono,
-                mensajePresupuesto({
-                  nombreContacto: presupuesto.nombre_contacto,
-                  vehiculo: vehiculo || "vehículo",
-                  queObservo: presupuesto.que_observo,
-                  servicios: presupuesto.servicios,
-                  tiempoEstimado: presupuesto.tiempo_estimado,
-                  validez: presupuesto.validez,
-                  formatARS,
-                  formatFecha,
-                })
-              )}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Button>
-                <MessageCircle size={14} />
-                Enviar por WhatsApp
-              </Button>
-            </a>
-          )}
-        </div>
+        )}
 
         {presupuesto.estado === "pendiente" && (
           <div className="flex gap-2 border-t border-borde pt-4">

@@ -28,13 +28,15 @@ export function mensajeRenovacion(cliente: string, servicio: string, auto: strin
 }
 
 /**
- * Presupuesto formateado para WhatsApp (negrita con *asteriscos* y una
- * tabla en bloque monoespaciado con tres backticks). Sin emojis a
+ * Presupuesto formateado para WhatsApp para que se lea como un documento,
+ * no como un mensaje suelto: separadores en bloque, encabezado tipo
+ * membrete, campos etiquetados y la tabla en monoespaciado. Sin emojis a
  * propósito: en las pruebas mostraban "�" en WhatsApp Web con la sesión
  * recién abierta (assets de emoji sin cargar todavía) — se puede volver
  * a agregar si se confirma que en un teléfono real anda bien.
  * A diferencia de las plantillas de aviso, acá el precio va incluido
- * a propósito: es justamente lo que se está mandando.
+ * a propósito: es justamente lo que se está mandando. No se adjunta PDF
+ * porque WhatsApp no permite adjuntar archivos desde un link (ver §3).
  */
 export function mensajePresupuesto(datos: {
   nombreContacto: string;
@@ -55,22 +57,29 @@ export function mensajePresupuesto(datos: {
     .map((s) => `${s.nombre.padEnd(anchoNombre, " ")}  ${formatARS(s.precio)}`)
     .join("\n");
 
+  const raya = "━━━━━━━━━━━━━━━━━━━━━━━━";
+
   const lineas = [
-    `*Presupuesto — JMF Detailing*`,
+    raya,
+    `      *JMF DETAILING*`,
+    `   Presupuesto de servicio`,
+    raya,
     ``,
-    `Hola ${nombreContacto}! Te dejamos el presupuesto para tu ${vehiculo}.`,
-    queObservo ? `Observado: ${queObservo}` : null,
+    `*Cliente:* ${nombreContacto}`,
+    `*Vehículo:* ${vehiculo}`,
+    queObservo ? `*Observado:* ${queObservo}` : null,
     ``,
-    `*Servicios*`,
+    `*DETALLE DEL SERVICIO*`,
     "```",
     tabla,
     "```",
-    `*Total: ${formatARS(total)}*`,
-    tiempoEstimado ? `Tiempo estimado: ${tiempoEstimado}` : null,
-    validez ? `Válido hasta ${formatFecha(validez)}` : null,
+    `*TOTAL: ${formatARS(total)}*`,
     ``,
-    `Cualquier consulta quedamos a disposición.`,
-    `— JMF Detailing`,
+    tiempoEstimado ? `*Tiempo estimado:* ${tiempoEstimado}` : null,
+    validez ? `*Válido hasta:* ${formatFecha(validez)}` : null,
+    raya,
+    `Gracias por confiar en nosotros.`,
+    `Cualquier consulta, quedamos a disposición.`,
   ].filter((l): l is string => l !== null);
 
   return lineas.join("\n");

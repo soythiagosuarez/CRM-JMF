@@ -64,6 +64,20 @@ h3,
   scrollbar-color: var(--jmf-borde) var(--jmf-negro);
 }
 
+/* Cursor pointer en todo lo clickeable de la app. Los <button> nativos
+   por default tienen cursor "default", no "pointer" — por eso hace
+   falta esto explícito. Los <div onClick> (tarjetas clickeables) lo
+   reciben desde el propio componente Card cuando tiene onClick. */
+button:not(:disabled),
+a[href],
+select,
+label,
+input[type="checkbox"],
+input[type="radio"],
+[role="button"] {
+  cursor: pointer;
+}
+
 /* Input/textarea/select de formularios en toda la app.
    En @layer components para que utilidades de Tailwind como pl-9
    puedan pisar el padding por especificidad de capa (si no, este
