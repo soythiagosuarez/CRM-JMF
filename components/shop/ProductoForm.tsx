@@ -36,7 +36,7 @@ export function ProductoForm({
         <input id="nombre" name="nombre" defaultValue={producto?.nombre} required className="campo" />
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="stock_actual" className="text-sm text-texto-secundario">
             Stock actual
@@ -99,7 +99,7 @@ export function ProductoForm({
         </p>
       )}
 
-      <div className="flex justify-end gap-2 pt-2">
+      <div className="flex flex-wrap justify-end gap-2 pt-2">
         <Button type="button" variante="secundario" onClick={onCancelar}>
           Cancelar
         </Button>

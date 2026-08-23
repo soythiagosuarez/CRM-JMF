@@ -100,7 +100,7 @@ export function ProductosClient({ productos }: { productos: Producto[] }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {productos.map((p) =>
             editandoId === p.id ? (
-              <Card key={p.id} className="sm:col-span-2 lg:col-span-3">
+              <Card key={p.id}>
                 <CardHeader title={`Editar: ${p.nombre}`} />
                 <ProductoForm
                   producto={p}
