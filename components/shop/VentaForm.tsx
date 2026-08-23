@@ -27,7 +27,7 @@ export function VentaForm({
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
           <label htmlFor={`cantidad-${producto.id}`} className="text-xs text-texto-secundario">
             Cantidad
@@ -94,7 +94,7 @@ export function VentaForm({
         </div>
       </div>
       {estado.error && <p className="text-xs text-rojo">{estado.error}</p>}
-      <div className="flex justify-end gap-2">
+      <div className="flex flex-wrap justify-end gap-2">
         <Button type="button" variante="secundario" onClick={onCancelar}>
           Cancelar
         </Button>
