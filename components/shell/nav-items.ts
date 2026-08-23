@@ -34,7 +34,6 @@ export const navGroups: NavGroup[] = [
     items: [
       { href: "/", label: "Inicio", icon: LayoutDashboard },
       { href: "/agenda", label: "Agenda", icon: CalendarDays },
-      { href: "/leads", label: "Leads / Presupuestos", icon: UserSearch },
       { href: "/finanzas", label: "Finanzas", icon: Wallet },
     ],
   },
@@ -50,6 +49,7 @@ export const navGroups: NavGroup[] = [
     titulo: "Gestión",
     items: [
       { href: "/clientes", label: "Clientes", icon: Users },
+      { href: "/presupuestos", label: "Presupuestos", icon: UserSearch },
       { href: "/servicios", label: "Servicios", icon: Wrench },
       { href: "/recordatorios", label: "Recordatorios", icon: BellRing },
       { href: "/reportes", label: "Reportes", icon: BarChart3 },
