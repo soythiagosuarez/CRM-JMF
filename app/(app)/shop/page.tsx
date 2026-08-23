@@ -1,5 +1,7 @@
-import { EnConstruccion } from "@/components/shell/EnConstruccion";
+import { listarProductos } from "@/lib/data/productos";
+import { ProductosClient } from "@/components/shop/ProductosClient";
 
-export default function Page() {
-  return <EnConstruccion titulo="Gestión de Shop" logo="/brands/shop.png" />;
+export default async function ShopPage() {
+  const productos = await listarProductos();
+  return <ProductosClient productos={productos} />;
 }
