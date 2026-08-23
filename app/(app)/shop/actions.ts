@@ -95,10 +95,12 @@ export async function venderProducto(
   const cantidad = Number(formData.get("cantidad"));
   const precioUnitario = Number(formData.get("precio_unitario"));
   const fecha = String(formData.get("fecha") ?? "").trim();
+  const medio_pago = String(formData.get("medio_pago") ?? "").trim();
 
   if (!cantidad || cantidad <= 0) return { error: "Cargá una cantidad válida." };
   if (!precioUnitario || precioUnitario <= 0) return { error: "Cargá un precio válido." };
   if (!fecha) return { error: "Cargá la fecha." };
+  if (!medio_pago) return { error: "Elegí el medio de pago." };
 
   const supabase = await createClient();
   const { data: producto, error: errorGet } = await supabase
@@ -126,6 +128,7 @@ export async function venderProducto(
     monto,
     moneda_original: "ARS",
     monto_ars: monto,
+    medio_pago,
     fecha,
     origen: "shop",
     ref_origen: productoId,

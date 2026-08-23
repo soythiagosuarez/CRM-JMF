@@ -27,34 +27,71 @@ export function VentaForm({
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
-      <div className="grid grid-cols-3 gap-2">
-        <input
-          name="cantidad"
-          type="number"
-          min="1"
-          max={producto.stock_actual}
-          defaultValue={1}
-          required
-          placeholder="Cantidad"
-          className="campo"
-        />
-        <input
-          name="precio_unitario"
-          type="number"
-          min="0"
-          step="0.01"
-          defaultValue={producto.precio_venta ?? ""}
-          required
-          placeholder="Precio unitario"
-          className="campo"
-        />
-        <input
-          name="fecha"
-          type="date"
-          defaultValue={new Date().toISOString().slice(0, 10)}
-          required
-          className="campo"
-        />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="flex flex-col gap-1">
+          <label htmlFor={`cantidad-${producto.id}`} className="text-xs text-texto-secundario">
+            Cantidad
+          </label>
+          <input
+            id={`cantidad-${producto.id}`}
+            name="cantidad"
+            type="number"
+            min="1"
+            max={producto.stock_actual}
+            defaultValue={1}
+            required
+            className="campo"
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label htmlFor={`precio-${producto.id}`} className="text-xs text-texto-secundario">
+            Precio unitario
+          </label>
+          <input
+            id={`precio-${producto.id}`}
+            name="precio_unitario"
+            type="number"
+            min="0"
+            step="0.01"
+            defaultValue={producto.precio_venta ?? ""}
+            required
+            className="campo"
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label htmlFor={`fecha-${producto.id}`} className="text-xs text-texto-secundario">
+            Fecha
+          </label>
+          <input
+            id={`fecha-${producto.id}`}
+            name="fecha"
+            type="date"
+            defaultValue={new Date().toISOString().slice(0, 10)}
+            required
+            className="campo"
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label htmlFor={`medio-${producto.id}`} className="text-xs text-texto-secundario">
+            Medio de pago
+          </label>
+          <select
+            id={`medio-${producto.id}`}
+            name="medio_pago"
+            required
+            defaultValue=""
+            className="campo"
+          >
+            <option value="" disabled>
+              Elegí uno
+            </option>
+            <option value="efectivo_pesos">Efectivo pesos</option>
+            <option value="efectivo_dolares">Efectivo dólares</option>
+            <option value="transferencia">Transferencia</option>
+            <option value="cheque">Cheque</option>
+            <option value="usdt">USDT</option>
+          </select>
+        </div>
       </div>
       {estado.error && <p className="text-xs text-rojo">{estado.error}</p>}
       <div className="flex justify-end gap-2">
