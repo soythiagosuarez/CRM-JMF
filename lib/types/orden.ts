@@ -45,6 +45,12 @@ export interface Orden {
   updated_at: string;
 }
 
+export const FLAG_LABEL: Record<FlagOrden, string> = {
+  esperando_repuesto_producto: "Esperando repuesto",
+  esperando_cliente: "Esperando cliente",
+  demorado: "Demorado",
+};
+
 export interface OrdenConDatos extends Orden {
   cliente_nombre: string;
   cliente_telefono: string | null;

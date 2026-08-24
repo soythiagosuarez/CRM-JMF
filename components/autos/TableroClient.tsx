@@ -7,6 +7,7 @@ import { OrdenModal } from "./OrdenModal";
 import { TurnoPopup } from "@/components/agenda/TurnoPopup";
 import { marcarIngresado } from "@/app/(app)/agenda/actions";
 import { moverOrdenEstado } from "@/app/(app)/autos/actions";
+import { FLAG_LABEL } from "@/lib/types/orden";
 import type { EstadoOrden, OrdenConDatos } from "@/lib/types/orden";
 import type { TurnoConDatos } from "@/lib/types/turno";
 
@@ -29,11 +30,6 @@ const INDICE_COLUMNA: Record<ColumnaId, number> = {
   entregado: 4,
 };
 
-const FLAG_LABEL: Record<string, string> = {
-  esperando_repuesto_producto: "Esperando repuesto",
-  esperando_cliente: "Esperando cliente",
-  demorado: "Demorado",
-};
 
 interface Arrastrado {
   id: string;

@@ -4,27 +4,28 @@ import { Card, CardHeader } from "@/components/ui/Card";
 import { Kpi } from "@/components/ui/Kpi";
 import { Badge } from "@/components/ui/Badge";
 import { formatARS, formatFecha } from "@/lib/format";
-import { linkWhatsapp, mensajeCambioFase, mensajeMantenimiento, mensajeRenovacion } from "@/lib/whatsapp";
 import {
-  kpisMock,
-  finanzasPorMarcaMock,
-  metaMesMock,
-  autosEnTallerMock,
-  mixServiciosMock,
-  recordatoriosMock,
-  flagLabel,
-} from "@/lib/mock-data";
+  linkWhatsapp,
+  mensajeCambioFase,
+  mensajeMantenimiento,
+  mensajeRenovacion,
+} from "@/lib/whatsapp";
+import { obtenerDashboard } from "@/lib/data/dashboard";
+import { FLAG_LABEL } from "@/lib/types/orden";
+import { MARCA_LABEL, type MarcaMovimiento } from "@/lib/types/movimiento";
 
-export default function InicioPage() {
-  const netoMes = kpisMock.ingresosMes - kpisMock.egresosMes;
-  const totalMixServicios = mixServiciosMock.reduce((acc, s) => acc + s.cantidad, 0);
+const MARCAS_ORDEN: MarcaMovimiento[] = ["detailing", "shop", "classmotor", "compartido"];
+
+export default async function InicioPage() {
+  const dash = await obtenerDashboard();
+  const totalMixServicios = dash.mixServicios.reduce((acc, s) => acc + s.cantidad, 0);
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-2xl font-semibold text-texto">Inicio</h1>
         <p className="text-sm text-texto-secundario mt-1">
-          Resumen general de Detailing, Shop y Classmotor. Datos de ejemplo.
+          Resumen general de Detailing, Shop y Classmotor.
         </p>
       </div>
 
@@ -32,16 +33,16 @@ export default function InicioPage() {
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Kpi
           etiqueta="Autos en el taller"
-          valor={String(kpisMock.autosEnTaller)}
+          valor={String(dash.autosEnTallerCantidad)}
           enlace={{ href: "/autos", texto: "Gestionar autos" }}
         />
-        <Kpi etiqueta="Ingresos del mes" valor={formatARS(kpisMock.ingresosMes)} tono="positivo" />
-        <Kpi etiqueta="Egresos del mes" valor={formatARS(kpisMock.egresosMes)} tono="negativo" />
+        <Kpi etiqueta="Ingresos del mes" valor={formatARS(dash.ingresosMes)} tono="positivo" />
+        <Kpi etiqueta="Egresos del mes" valor={formatARS(dash.egresosMes)} tono="negativo" />
         <Kpi
           etiqueta="Neto del mes"
-          valor={formatARS(netoMes)}
-          tono={netoMes >= 0 ? "positivo" : "negativo"}
-          detalle={netoMes >= 0 ? "El mes está en verde" : "El mes está en rojo"}
+          valor={formatARS(dash.netoMes)}
+          tono={dash.netoMes >= 0 ? "positivo" : "negativo"}
+          detalle={dash.netoMes >= 0 ? "El mes está en verde" : "El mes está en rojo"}
         />
       </section>
 
@@ -50,7 +51,7 @@ export default function InicioPage() {
         <Card className="lg:col-span-2">
           <CardHeader
             title="Finanzas por marca"
-            subtitle="Ingresos, egresos y neto operativo de cada marca"
+            subtitle="Ingresos, egresos y neto operativo de cada marca este mes"
             action={
               <Link href="/finanzas" className="text-sm text-rojo hover:underline">
                 Ver todo
@@ -58,16 +59,16 @@ export default function InicioPage() {
             }
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {finanzasPorMarcaMock.map((m) => {
-              const neto = m.ingresos - m.egresos;
-              const enRojo = neto < 0;
+            {MARCAS_ORDEN.map((marca) => {
+              const t = dash.finanzasPorMarca.get(marca)!;
+              const enRojo = t.neto < 0;
               return (
                 <div
-                  key={m.marca}
+                  key={marca}
                   className="rounded-lg border border-borde bg-panel-2 p-4 flex flex-col gap-2"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-texto">{m.marca}</span>
+                    <span className="text-sm font-medium text-texto">{MARCA_LABEL[marca]}</span>
                     {enRojo && (
                       <Badge tono="negativo">
                         <AlertTriangle size={12} className="mr-1" />
@@ -80,11 +81,11 @@ export default function InicioPage() {
                       enRojo ? "text-rojo" : "text-verde"
                     }`}
                   >
-                    {formatARS(neto)}
+                    {formatARS(t.neto)}
                   </span>
                   <div className="flex justify-between text-xs text-texto-secundario">
-                    <span>Ingresos {formatARS(m.ingresos)}</span>
-                    <span>Egresos {formatARS(m.egresos)}</span>
+                    <span>Ingresos {formatARS(t.ingresos)}</span>
+                    <span>Egresos {formatARS(t.egresos)}</span>
                   </div>
                 </div>
               );
@@ -98,14 +99,14 @@ export default function InicioPage() {
           <div className="flex flex-col gap-5">
             <MetaBarra
               etiqueta="PPF"
-              actual={metaMesMock.ppf.actual}
-              objetivo={metaMesMock.ppf.objetivo}
+              actual={dash.metaMes.ppf.actual}
+              objetivo={dash.metaMes.ppf.objetivo}
               unidad="por mes"
             />
             <MetaBarra
               etiqueta="Tratamiento cerámico"
-              actual={metaMesMock.ceramicoSemana.actual}
-              objetivo={metaMesMock.ceramicoSemana.objetivo}
+              actual={dash.metaMes.ceramicoSemana.actual}
+              objetivo={dash.metaMes.ceramicoSemana.objetivo}
               unidad="esta semana"
             />
           </div>
@@ -124,79 +125,101 @@ export default function InicioPage() {
               </Link>
             }
           />
-          <div className="overflow-x-auto -mx-1">
-            <table className="w-full text-sm min-w-[560px]">
-              <thead>
-                <tr className="text-left text-texto-secundario border-b border-borde">
-                  <th className="font-normal py-2 px-1">Cliente / Auto</th>
-                  <th className="font-normal py-2 px-1">Servicio</th>
-                  <th className="font-normal py-2 px-1">Fase</th>
-                  <th className="font-normal py-2 px-1">Estado</th>
-                  <th className="font-normal py-2 px-1 text-right">Avisar</th>
-                </tr>
-              </thead>
-              <tbody>
-                {autosEnTallerMock.map((a) => (
-                  <tr key={a.id} className="border-b border-borde/60 last:border-0">
-                    <td className="py-2.5 px-1">
-                      <p className="text-texto">{a.cliente}</p>
-                      <p className="text-texto-secundario text-xs">{a.auto}</p>
-                    </td>
-                    <td className="py-2.5 px-1 text-texto-secundario">{a.servicio}</td>
-                    <td className="py-2.5 px-1 text-texto">{a.fase}</td>
-                    <td className="py-2.5 px-1">
-                      {a.flags.length === 0 ? (
-                        <span className="text-texto-secundario text-xs">—</span>
-                      ) : (
-                        <div className="flex flex-wrap gap-1">
-                          {a.flags.map((f) => (
-                            <Badge key={f} tono="negativo">
-                              {flagLabel[f]}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </td>
-                    <td className="py-2.5 px-1 text-right">
-                      <a
-                        href={linkWhatsapp(a.telefono, mensajeCambioFase(a.cliente, a.auto, a.fase))}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs text-verde hover:underline"
-                      >
-                        <MessageCircle size={14} />
-                        Avisar
-                      </a>
-                    </td>
+          {dash.autosEnTaller.length === 0 ? (
+            <p className="text-sm text-texto-secundario py-6 text-center">
+              No hay autos en el taller ahora mismo.
+            </p>
+          ) : (
+            <div className="overflow-x-auto -mx-1">
+              <table className="w-full text-sm min-w-[560px]">
+                <thead>
+                  <tr className="text-left text-texto-secundario border-b border-borde">
+                    <th className="font-normal py-2 px-1">Cliente / Auto</th>
+                    <th className="font-normal py-2 px-1">Servicio</th>
+                    <th className="font-normal py-2 px-1">Fase</th>
+                    <th className="font-normal py-2 px-1">Estado</th>
+                    <th className="font-normal py-2 px-1 text-right">Avisar</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {dash.autosEnTaller.map((o) => (
+                    <tr key={o.id} className="border-b border-borde/60 last:border-0">
+                      <td className="py-2.5 px-1">
+                        <p className="text-texto">{o.cliente_nombre}</p>
+                        <p className="text-texto-secundario text-xs">
+                          {o.vehiculo_descripcion || "Sin vehículo"}
+                        </p>
+                      </td>
+                      <td className="py-2.5 px-1 text-texto-secundario">
+                        {o.servicio_principal_nombre}
+                      </td>
+                      <td className="py-2.5 px-1 text-texto">{o.fase_actual ?? "—"}</td>
+                      <td className="py-2.5 px-1">
+                        {o.flags.length === 0 ? (
+                          <span className="text-texto-secundario text-xs">—</span>
+                        ) : (
+                          <div className="flex flex-wrap gap-1">
+                            {o.flags.map((f) => (
+                              <Badge key={f} tono="negativo">
+                                {FLAG_LABEL[f]}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-2.5 px-1 text-right">
+                        {o.cliente_telefono && (
+                          <a
+                            href={linkWhatsapp(
+                              o.cliente_telefono,
+                              mensajeCambioFase(
+                                o.cliente_nombre,
+                                o.vehiculo_descripcion,
+                                o.fase_actual ?? ""
+                              )
+                            )}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 text-xs text-verde hover:underline"
+                          >
+                            <MessageCircle size={14} />
+                            Avisar
+                          </a>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </Card>
 
         {/* Mix de servicios */}
         <Card>
           <CardHeader title="Mix de servicios" subtitle="Órdenes del mes por tipo" />
-          <div className="flex flex-col gap-3">
-            {mixServiciosMock.map((s) => {
-              const pct = totalMixServicios ? Math.round((s.cantidad / totalMixServicios) * 100) : 0;
-              return (
-                <div key={s.servicio}>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-texto">{s.servicio}</span>
-                    <span className="text-texto-secundario">{s.cantidad}</span>
+          {dash.mixServicios.length === 0 ? (
+            <p className="text-sm text-texto-secundario py-6 text-center">
+              Todavía no hay órdenes este mes.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {dash.mixServicios.map((s) => {
+                const pct = totalMixServicios ? Math.round((s.cantidad / totalMixServicios) * 100) : 0;
+                return (
+                  <div key={s.servicio}>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-texto">{s.servicio}</span>
+                      <span className="text-texto-secundario">{s.cantidad}</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-panel-2 overflow-hidden">
+                      <div className="h-full rounded-full bg-rojo" style={{ width: `${pct}%` }} />
+                    </div>
                   </div>
-                  <div className="h-2 rounded-full bg-panel-2 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-rojo"
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </Card>
       </div>
 
@@ -211,35 +234,50 @@ export default function InicioPage() {
             </Link>
           }
         />
-        <div className="flex flex-col divide-y divide-borde/60">
-          {recordatoriosMock.map((r) => (
-            <div key={r.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-              <div>
-                <p className="text-sm text-texto">
-                  {r.cliente} <span className="text-texto-secundario">· {r.auto}</span>
-                </p>
-                <p className="text-xs text-texto-secundario mt-0.5">
-                  {r.tratamiento} · {r.tipo === "mantenimiento" ? "Mantenimiento" : "Renovación"} ·{" "}
-                  {formatFecha(r.fechaProxima)}
-                </p>
-              </div>
-              <a
-                href={linkWhatsapp(
-                  r.telefono,
-                  r.tipo === "mantenimiento"
-                    ? mensajeMantenimiento(r.cliente, r.tratamiento)
-                    : mensajeRenovacion(r.cliente, r.tratamiento, r.auto)
+        {dash.recordatoriosProximos.length === 0 ? (
+          <p className="text-sm text-texto-secundario py-6 text-center">
+            No hay recordatorios pendientes.
+          </p>
+        ) : (
+          <div className="flex flex-col divide-y divide-borde/60">
+            {dash.recordatoriosProximos.map((r) => (
+              <div key={r.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                <div>
+                  <p className="text-sm text-texto">
+                    {r.cliente_nombre}{" "}
+                    <span className="text-texto-secundario">
+                      · {r.vehiculo_descripcion || "Sin vehículo"}
+                    </span>
+                  </p>
+                  <p className="text-xs text-texto-secundario mt-0.5">
+                    {r.tratamiento} · {r.tipo === "mantenimiento" ? "Mantenimiento" : "Renovación"} ·{" "}
+                    {r.fecha_proxima ? formatFecha(r.fecha_proxima) : "Sin fecha"}
+                  </p>
+                </div>
+                {r.cliente_telefono && (
+                  <a
+                    href={linkWhatsapp(
+                      r.cliente_telefono,
+                      r.tipo === "mantenimiento"
+                        ? mensajeMantenimiento(r.cliente_nombre, r.tratamiento ?? "tratamiento")
+                        : mensajeRenovacion(
+                            r.cliente_nombre,
+                            r.tratamiento ?? "tratamiento",
+                            r.vehiculo_descripcion || "tu vehículo"
+                          )
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs text-verde hover:underline shrink-0"
+                  >
+                    <MessageCircle size={14} />
+                    Recontactar
+                  </a>
                 )}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs text-verde hover:underline shrink-0"
-              >
-                <MessageCircle size={14} />
-                Recontactar
-              </a>
-            </div>
-          ))}
-        </div>
+              </div>
+            ))}
+          </div>
+        )}
       </Card>
     </div>
   );
