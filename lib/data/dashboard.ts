@@ -61,7 +61,7 @@ export async function obtenerDashboard() {
   ).length;
 
   const recordatoriosProximos = recordatorios
-    .filter((r) => r.estado === "pendiente")
+    .filter((r) => r.estado === "pendiente" && r.tipo !== "nota")
     .sort((a, b) => (a.fecha_proxima ?? "").localeCompare(b.fecha_proxima ?? ""))
     .slice(0, 5);
 

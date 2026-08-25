@@ -259,9 +259,9 @@ export default async function InicioPage() {
                     href={linkWhatsapp(
                       r.cliente_telefono,
                       r.tipo === "mantenimiento"
-                        ? mensajeMantenimiento(r.cliente_nombre, r.tratamiento ?? "tratamiento")
+                        ? mensajeMantenimiento(r.cliente_nombre ?? "", r.tratamiento ?? "tratamiento")
                         : mensajeRenovacion(
-                            r.cliente_nombre,
+                            r.cliente_nombre ?? "",
                             r.tratamiento ?? "tratamiento",
                             r.vehiculo_descripcion || "tu vehículo"
                           )

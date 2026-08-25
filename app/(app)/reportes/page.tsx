@@ -132,22 +132,45 @@ export default async function ReportesPage({
 
       <Card>
         <CardHeader title="Facturación por marca" />
-        <div className="flex flex-col divide-y divide-borde/60">
-          {MARCAS_ORDEN.map((marca) => {
-            const t = reporte.porMarca.get(marca)!;
-            const enRojo = t.neto < 0;
-            return (
-              <div key={marca} className="flex items-center justify-between py-3">
-                <span className="text-sm text-texto">{MARCA_LABEL[marca]}</span>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-texto-secundario">
-                    +{formatARS(t.ingresos)} / -{formatARS(t.egresos)}
-                  </span>
-                  <Badge tono={enRojo ? "negativo" : "positivo"}>{formatARS(t.neto)}</Badge>
-                </div>
-              </div>
-            );
-          })}
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs text-texto-secundario uppercase tracking-wide border-b border-borde">
+                <th className="py-2 pr-3">Destino/marca</th>
+                <th className="py-2 pr-3">Ingreso, egreso y neto</th>
+                <th className="py-2 w-10"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-borde/60">
+              {MARCAS_ORDEN.map((marca) => {
+                const t = reporte.porMarca.get(marca)!;
+                const enRojo = t.neto < 0;
+                return (
+                  <tr key={marca}>
+                    <td className="py-3 pr-3 text-texto">{MARCA_LABEL[marca]}</td>
+                    <td className="py-3 pr-3">
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <span className="text-xs text-texto-secundario">
+                          +{formatARS(t.ingresos)} / -{formatARS(t.egresos)}
+                        </span>
+                        <Badge tono={enRojo ? "negativo" : "positivo"}>{formatARS(t.neto)}</Badge>
+                      </div>
+                    </td>
+                    <td className="py-3 text-right">
+                      <Link
+                        href={`/reportes/${marca}?mes=${mesActual}`}
+                        aria-label={`Ver desglose de ${MARCA_LABEL[marca]}`}
+                        className="inline-flex items-center gap-1 text-xs text-rojo hover:underline"
+                      >
+                        Ver
+                        <ChevronRight size={14} />
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </Card>
     </div>
