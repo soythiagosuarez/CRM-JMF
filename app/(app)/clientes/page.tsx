@@ -3,14 +3,18 @@ import { Search, Car } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { buscarClientes } from "@/lib/data/clientes";
 import { NuevoClienteToggle } from "@/components/clientes/NuevoClienteToggle";
+import type { OrigenCliente } from "@/lib/types/cliente";
 
 export default async function ClientesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; origen?: string }>;
 }) {
-  const { q } = await searchParams;
-  const clientes = await buscarClientes(q);
+  const { q, origen: origenParam } = await searchParams;
+  const origen: OrigenCliente = origenParam === "classmotor" ? "classmotor" : "detailing";
+  const clientes = await buscarClientes(q, origen);
+
+  const hrefTab = (o: OrigenCliente) => `/clientes?origen=${o}${q ? `&q=${encodeURIComponent(q)}` : ""}`;
 
   return (
     <div className="flex flex-col gap-6">
@@ -21,10 +25,25 @@ export default async function ClientesPage({
             Ficha con datos, vehículos e historial. Búsqueda por nombre o patente.
           </p>
         </div>
-        <NuevoClienteToggle />
+        <NuevoClienteToggle origenInicial={origen} />
+      </div>
+
+      <div className="flex rounded-lg border border-borde overflow-hidden self-start">
+        {(["detailing", "classmotor"] as OrigenCliente[]).map((o) => (
+          <Link
+            key={o}
+            href={hrefTab(o)}
+            className={`px-4 py-1.5 text-sm capitalize ${
+              origen === o ? "bg-rojo/10 text-rojo" : "text-texto-secundario hover:text-texto"
+            }`}
+          >
+            Clientes {o === "detailing" ? "Detailing" : "Classmotor"}
+          </Link>
+        ))}
       </div>
 
       <form method="GET" className="flex gap-2 max-w-md">
+        <input type="hidden" name="origen" value={origen} />
         <div className="relative flex-1">
           <Search
             size={16}
@@ -43,12 +62,14 @@ export default async function ClientesPage({
       {clientes.length === 0 ? (
         <Card className="flex flex-col items-center gap-2 py-16 text-center">
           <p className="text-texto">
-            {q ? "No encontramos clientes con esa búsqueda." : "Todavía no hay clientes cargados."}
+            {q ? "No encontramos clientes con esa búsqueda." : "Todavía no hay clientes acá."}
           </p>
           <p className="text-sm text-texto-secundario max-w-sm">
             {q
               ? "Probá con otro nombre o patente."
-              : 'Usá "Nuevo cliente" para cargar el primero.'}
+              : origen === "detailing"
+                ? 'Los clientes nuevos se cargan solos al agendarles un turno en Agenda, o usá "Cargar cliente existente".'
+                : 'Los clientes nuevos se cargan solos al ingresar un auto en Classmotor, o usá "Cargar cliente existente".'}
           </p>
         </Card>
       ) : (

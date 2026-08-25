@@ -224,6 +224,7 @@ export function CalendarioClient({
       {ingresandoClassmotor && (
         <Modal titulo="Ingresar auto Classmotor" onCerrar={() => setIngresandoClassmotor(false)}>
           <AutoClassmotorForm
+            clientes={clientes}
             accion={crearAutoClassmotor}
             onCancelar={() => setIngresandoClassmotor(false)}
             onGuardado={() => setIngresandoClassmotor(false)}

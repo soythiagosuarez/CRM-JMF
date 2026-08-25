@@ -3,16 +3,23 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { ClienteInput, VehiculoInput } from "@/lib/types/cliente";
+import type { ClienteInput, OrigenCliente, VehiculoInput } from "@/lib/types/cliente";
 
 export interface EstadoFormulario {
   error?: string;
   ok?: boolean;
 }
 
-function leerClienteInput(formData: FormData): ClienteInput | { error: string } {
+function leerClienteInput(
+  formData: FormData
+): (ClienteInput & { origen: OrigenCliente }) | { error: string } {
   const nombre_completo = String(formData.get("nombre_completo") ?? "").trim();
   if (!nombre_completo) return { error: "El nombre es obligatorio." };
+
+  const origen = String(formData.get("origen") ?? "");
+  if (origen !== "detailing" && origen !== "classmotor") {
+    return { error: "Elegí a qué marca pertenece el cliente." };
+  }
 
   return {
     nombre_completo,
@@ -20,6 +27,7 @@ function leerClienteInput(formData: FormData): ClienteInput | { error: string } 
     email: String(formData.get("email") ?? "").trim() || null,
     como_llego: String(formData.get("como_llego") ?? "").trim() || null,
     notas: String(formData.get("notas") ?? "").trim() || null,
+    origen,
   };
 }
 

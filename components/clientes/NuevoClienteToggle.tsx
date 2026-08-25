@@ -6,8 +6,9 @@ import { Card, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { ClienteForm } from "./ClienteForm";
 import { crearCliente } from "@/app/(app)/clientes/actions";
+import type { OrigenCliente } from "@/lib/types/cliente";
 
-export function NuevoClienteToggle() {
+export function NuevoClienteToggle({ origenInicial }: { origenInicial?: OrigenCliente }) {
   const [abierto, setAbierto] = useState(false);
 
   if (!abierto) {
@@ -27,6 +28,7 @@ export function NuevoClienteToggle() {
       />
       <ClienteForm
         accion={crearCliente}
+        origenInicial={origenInicial}
         onCancelar={() => setAbierto(false)}
         textoBoton="Cargar cliente"
       />

@@ -1,6 +1,8 @@
 /**
  * Cliente y Vehículo — ESPECIFICACION.md §6.1 y §6.2.
  */
+export type OrigenCliente = "detailing" | "classmotor";
+
 export interface Cliente {
   id: string;
   nombre_completo: string;
@@ -8,6 +10,7 @@ export interface Cliente {
   email: string | null;
   como_llego: string | null;
   notas: string | null;
+  origen: OrigenCliente | null;
   created_at: string;
   updated_at: string;
 }

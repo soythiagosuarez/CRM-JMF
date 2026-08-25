@@ -20,15 +20,19 @@ import {
   calcularGanancia,
 } from "@/lib/types/classmotor";
 import type { AutoClassmotor } from "@/lib/types/classmotor";
+import type { ClienteConVehiculos } from "@/lib/types/cliente";
 
 export function AutoModal({
   auto,
+  clientes,
   onCerrar,
 }: {
   auto: AutoClassmotor;
+  clientes: ClienteConVehiculos[];
   onCerrar: () => void;
 }) {
   const [editando, setEditando] = useState(false);
+  const cliente = auto.cliente_id ? clientes.find((c) => c.id === auto.cliente_id) : null;
   const [isPending, startTransition] = useTransition();
   const ganancia = calcularGanancia(auto);
   const indiceActual = ORDEN_ESTADOS.indexOf(auto.estado);
@@ -50,6 +54,7 @@ export function AutoModal({
       <Modal titulo={`Editar: ${titulo}`} onCerrar={onCerrar}>
         <AutoForm
           auto={auto}
+          clientes={clientes}
           accion={actualizarAutoClassmotor.bind(null, auto.id)}
           onCancelar={() => setEditando(false)}
           onGuardado={() => setEditando(false)}
@@ -142,9 +147,16 @@ export function AutoModal({
           <CostoExtraForm autoId={auto.id} />
         </div>
 
+        {cliente && (
+          <p className="text-xs text-texto-secundario">
+            Cliente: <span className="text-texto">{cliente.nombre_completo}</span>
+          </p>
+        )}
+
         {auto.fecha_ingreso && (
           <p className="text-xs text-texto-secundario">
             Ingresó {formatFecha(auto.fecha_ingreso)}
+            {auto.hora_ingreso && ` a las ${auto.hora_ingreso.slice(0, 5)}`}
             {auto.fecha_venta && ` · Vendido ${formatFecha(auto.fecha_venta)}`}
           </p>
         )}

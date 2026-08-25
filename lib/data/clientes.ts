@@ -1,20 +1,23 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Cliente, ClienteConVehiculos, Vehiculo } from "@/lib/types/cliente";
+import type { Cliente, ClienteConVehiculos, OrigenCliente, Vehiculo } from "@/lib/types/cliente";
 
 /**
  * Lista clientes. Con `q` busca por nombre o por patente de alguno de sus
- * vehículos (ver pantalla "Clientes" — ESPECIFICACION.md §9.8).
+ * vehículos (ver pantalla "Clientes" — ESPECIFICACION.md §9.8). Con
+ * `origen` filtra por marca de origen (Detailing/Classmotor no se mezclan).
  */
-export async function buscarClientes(q?: string): Promise<Cliente[]> {
+export async function buscarClientes(q?: string, origen?: OrigenCliente): Promise<Cliente[]> {
   const supabase = await createClient();
   const query = q?.trim();
 
   if (!query) {
-    const { data, error } = await supabase
+    let builder = supabase
       .from("clientes")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(100);
+    if (origen) builder = builder.eq("origen", origen);
+    const { data, error } = await builder;
     if (error) throw new Error("No se pudieron cargar los clientes: " + error.message);
     return data as Cliente[];
   }
@@ -43,9 +46,8 @@ export async function buscarClientes(q?: string): Promise<Cliente[]> {
     for (const c of extra ?? []) resultado.set(c.id, c as Cliente);
   }
 
-  return [...resultado.values()].sort((a, b) =>
-    a.nombre_completo.localeCompare(b.nombre_completo)
-  );
+  const todos = [...resultado.values()].filter((c) => !origen || c.origen === origen);
+  return todos.sort((a, b) => a.nombre_completo.localeCompare(b.nombre_completo));
 }
 
 /** Todos los clientes con sus vehículos, para selects dependientes (Agenda). */

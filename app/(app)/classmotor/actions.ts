@@ -40,6 +40,11 @@ function leerInput(formData: FormData) {
   };
 }
 
+/**
+ * Alta de auto Classmotor. Igual que crearTurno en Agenda: soporta cliente
+ * existente o cliente nuevo (creado en el mismo paso, con origen
+ * "classmotor" para no mezclarlo con los clientes de Detailing).
+ */
 export async function crearAutoClassmotor(
   _prevState: EstadoAutoForm,
   formData: FormData
@@ -47,18 +52,49 @@ export async function crearAutoClassmotor(
   const input = leerInput(formData);
   if ("error" in input) return { error: input.error };
 
+  const fecha_ingreso = String(formData.get("fecha_ingreso") ?? "").trim() ||
+    new Date().toISOString().slice(0, 10);
+  const hora_ingreso = String(formData.get("hora_ingreso") ?? "").trim() || null;
+  const modo = String(formData.get("modo") ?? "existente");
+
   const supabase = await createClient();
-  const hoy = new Date().toISOString().slice(0, 10);
+
+  let cliente_id: string | null = null;
+  if (modo === "nuevo") {
+    const nombre_completo = String(formData.get("nombre_completo") ?? "").trim();
+    if (!nombre_completo) return { error: "Cargá el nombre del cliente nuevo." };
+
+    const { data: cliente, error: errorCliente } = await supabase
+      .from("clientes")
+      .insert({
+        nombre_completo,
+        telefono: String(formData.get("telefono") ?? "").trim() || null,
+        email: String(formData.get("email") ?? "").trim() || null,
+        como_llego: String(formData.get("como_llego") ?? "").trim() || null,
+        origen: "classmotor",
+      })
+      .select("id")
+      .single();
+    if (errorCliente) return { error: "No se pudo crear el cliente: " + errorCliente.message };
+    cliente_id = cliente.id;
+  } else {
+    cliente_id = String(formData.get("cliente_id") ?? "") || null;
+    if (!cliente_id) return { error: "Elegí un cliente." };
+  }
+
   const { error } = await supabase.from("autos_classmotor").insert({
     ...input,
+    cliente_id,
     estado: "ingresa",
-    fecha_ingreso: hoy,
+    fecha_ingreso,
+    hora_ingreso,
     costos_extra: [],
   });
 
   if (error) return { error: "No se pudo cargar el auto: " + error.message };
 
   revalidatePath("/classmotor");
+  revalidatePath("/clientes");
   return { ok: true };
 }
 

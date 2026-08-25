@@ -91,6 +91,7 @@ export async function crearTurno(
         email: String(formData.get("email") ?? "").trim() || null,
         como_llego: String(formData.get("como_llego") ?? "").trim() || null,
         notas: String(formData.get("notas") ?? "").trim() || null,
+        origen: "detailing",
       })
       .select("id")
       .single();

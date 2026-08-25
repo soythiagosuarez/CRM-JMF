@@ -18,6 +18,7 @@ export interface CostoExtra {
 export interface AutoClassmotor {
   id: string;
   tipo: TipoAutoClassmotor;
+  cliente_id: string | null;
   marca: string | null;
   modelo: string | null;
   anio: number | null;
@@ -30,6 +31,7 @@ export interface AutoClassmotor {
   costos_extra: CostoExtra[];
   estado: EstadoAutoClassmotor;
   fecha_ingreso: string | null;
+  hora_ingreso: string | null;
   fecha_venta: string | null;
   created_at: string;
   updated_at: string;

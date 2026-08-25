@@ -11,6 +11,7 @@ import { crearAutoClassmotor, moverEstadoClassmotor } from "@/app/(app)/classmot
 import { ESTADO_LABEL, ORDEN_ESTADOS, calcularGanancia } from "@/lib/types/classmotor";
 import { formatARS } from "@/lib/format";
 import type { AutoClassmotor, EstadoAutoClassmotor } from "@/lib/types/classmotor";
+import type { ClienteConVehiculos } from "@/lib/types/cliente";
 
 const COLOR_COLUMNA: Record<EstadoAutoClassmotor, string> = {
   ingresa: "border-t-texto-secundario",
@@ -21,7 +22,13 @@ const COLOR_COLUMNA: Record<EstadoAutoClassmotor, string> = {
   vendido: "border-t-verde",
 };
 
-export function TableroClassmotorClient({ autos }: { autos: AutoClassmotor[] }) {
+export function TableroClassmotorClient({
+  autos,
+  clientes,
+}: {
+  autos: AutoClassmotor[];
+  clientes: ClienteConVehiculos[];
+}) {
   const [creando, setCreando] = useState(false);
   const [autoAbiertoId, setAutoAbiertoId] = useState<string | null>(null);
   const [columnaSobrevolada, setColumnaSobrevolada] = useState<EstadoAutoClassmotor | null>(null);
@@ -84,6 +91,7 @@ export function TableroClassmotorClient({ autos }: { autos: AutoClassmotor[] }) 
         <Card>
           <CardHeader title="Nuevo auto" />
           <AutoForm
+            clientes={clientes}
             accion={crearAutoClassmotor}
             onCancelar={() => setCreando(false)}
             onGuardado={() => setCreando(false)}
@@ -167,7 +175,9 @@ export function TableroClassmotorClient({ autos }: { autos: AutoClassmotor[] }) 
         </div>
       )}
 
-      {autoAbierto && <AutoModal auto={autoAbierto} onCerrar={() => setAutoAbiertoId(null)} />}
+      {autoAbierto && (
+        <AutoModal auto={autoAbierto} clientes={clientes} onCerrar={() => setAutoAbiertoId(null)} />
+      )}
     </div>
   );
 }

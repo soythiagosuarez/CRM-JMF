@@ -3,18 +3,20 @@
 import { useActionState } from "react";
 import { Button } from "@/components/ui/Button";
 import type { EstadoFormulario } from "@/app/(app)/clientes/actions";
-import type { Cliente } from "@/lib/types/cliente";
+import type { Cliente, OrigenCliente } from "@/lib/types/cliente";
 
 const estadoInicial: EstadoFormulario = {};
 
 export function ClienteForm({
   cliente,
+  origenInicial,
   accion,
   onCancelar,
   onGuardado,
   textoBoton = "Guardar",
 }: {
   cliente?: Cliente;
+  origenInicial?: OrigenCliente;
   accion: (
     prevState: EstadoFormulario,
     formData: FormData
@@ -35,6 +37,21 @@ export function ClienteForm({
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="flex flex-col gap-1.5 sm:col-span-2">
+          <label htmlFor="origen" className="text-sm text-texto-secundario">
+            Marca de origen
+          </label>
+          <select
+            id="origen"
+            name="origen"
+            required
+            defaultValue={cliente?.origen ?? origenInicial ?? "detailing"}
+            className="campo"
+          >
+            <option value="detailing">Detailing</option>
+            <option value="classmotor">Classmotor</option>
+          </select>
+        </div>
         <div className="flex flex-col gap-1.5 sm:col-span-2">
           <label htmlFor="nombre_completo" className="text-sm text-texto-secundario">
             Nombre completo
