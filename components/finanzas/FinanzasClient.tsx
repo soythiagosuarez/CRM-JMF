@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Plus, Minus, AlertTriangle, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Minus, AlertTriangle, Trash2, Pencil, ChevronLeft, ChevronRight, Info } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { MovimientoForm } from "./MovimientoForm";
-import { eliminarMovimiento } from "@/app/(app)/finanzas/actions";
+import { ExportarCsvButton } from "./ExportarCsvButton";
+import { crearMovimiento, actualizarMovimiento, eliminarMovimiento } from "@/app/(app)/finanzas/actions";
 import { formatARS, formatFecha } from "@/lib/format";
 import { CATEGORIAS, MARCA_LABEL, type MarcaMovimiento, type Movimiento } from "@/lib/types/movimiento";
 import type { TotalesPorMarca } from "@/lib/data/movimientos";
@@ -20,6 +22,24 @@ const MEDIO_PAGO_LABEL: Record<string, string> = {
   cheque: "Cheque",
   usdt: "USDT",
 };
+
+const MESES = [
+  "enero", "febrero", "marzo", "abril", "mayo", "junio",
+  "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+];
+
+function mesDeFecha(fechaISO: string): string {
+  const [anio, mes] = fechaISO.split("-").map(Number);
+  return `${MESES[mes - 1]} ${anio}`;
+}
+
+function rangoMesAdyacente(desde: string, delta: number) {
+  const [anio, mes] = desde.split("-").map(Number);
+  const d = new Date(anio, mes - 1 + delta, 1);
+  const nuevoDesde = new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
+  const nuevoHasta = new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().slice(0, 10);
+  return { desde: nuevoDesde, hasta: nuevoHasta };
+}
 
 export function FinanzasClient({
   movimientos,
@@ -38,8 +58,10 @@ export function FinanzasClient({
     medio_pago?: string;
   };
 }) {
-  const [alta, setAlta] = useState<"ingreso" | "egreso" | null>(null);
-  const [errorBorrar, setErrorBorrar] = useState<string | null>(null);
+  const router = useRouter();
+  const [alta, setAlta] = useState(false);
+  const [editandoId, setEditandoId] = useState<string | null>(null);
+  const [errorAccion, setErrorAccion] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const todasLasCategorias = [
@@ -48,14 +70,30 @@ export function FinanzasClient({
     ),
   ].sort();
 
+  const desde = filtros.desde ?? new Date().toISOString().slice(0, 10);
+  const hasta = filtros.hasta ?? desde;
+
+  const irAMes = (delta: number) => {
+    const { desde: nuevoDesde, hasta: nuevoHasta } = rangoMesAdyacente(desde, delta);
+    const params = new URLSearchParams();
+    if (filtros.marca) params.set("marca", filtros.marca);
+    if (filtros.categoria) params.set("categoria", filtros.categoria);
+    if (filtros.medio_pago) params.set("medio_pago", filtros.medio_pago);
+    params.set("desde", nuevoDesde);
+    params.set("hasta", nuevoHasta);
+    router.push(`/finanzas?${params.toString()}`);
+  };
+
   const borrar = (id: string) => {
     if (!confirm("¿Eliminar este movimiento? No se puede deshacer.")) return;
-    setErrorBorrar(null);
+    setErrorAccion(null);
     startTransition(async () => {
       const resultado = await eliminarMovimiento(id);
-      if (resultado.error) setErrorBorrar(resultado.error);
+      if (resultado.error) setErrorAccion(resultado.error);
     });
   };
+
+  const movimientoEditando = editandoId ? movimientos.find((m) => m.id === editandoId) : null;
 
   return (
     <div className="flex flex-col gap-6">
@@ -67,25 +105,30 @@ export function FinanzasClient({
             medio de pago.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variante="secundario" onClick={() => setAlta("egreso")}>
-            <Minus size={16} />
-            Egreso
-          </Button>
-          <Button onClick={() => setAlta("ingreso")}>
-            <Plus size={16} />
-            Ingreso
-          </Button>
+        <div className="flex flex-col items-end gap-1.5">
+          <div className="flex gap-2">
+            <Button onClick={() => setAlta(true)}>
+              <Minus size={16} />
+              Egreso
+            </Button>
+            <ExportarCsvButton movimientos={movimientos} nombreArchivo={`finanzas-${desde}_a_${hasta}`} />
+          </div>
+          <p className="flex items-center gap-1.5 text-xs text-texto-secundario max-w-xs text-right">
+            <Info size={12} className="shrink-0" />
+            No hay botón de ingreso: los cobros de órdenes, ventas de Shop y autos vendidos se
+            cargan solos para evitar anotarlos dos veces.
+          </p>
         </div>
       </div>
 
       {alta && (
         <Card>
-          <CardHeader title={alta === "ingreso" ? "Nuevo ingreso" : "Nuevo egreso"} />
+          <CardHeader title="Nuevo egreso" />
           <MovimientoForm
-            tipo={alta}
-            onCancelar={() => setAlta(null)}
-            onGuardado={() => setAlta(null)}
+            tipo="egreso"
+            accion={crearMovimiento}
+            onCancelar={() => setAlta(false)}
+            onGuardado={() => setAlta(false)}
           />
         </Card>
       )}
@@ -96,6 +139,27 @@ export function FinanzasClient({
           <TotalCard key={m} titulo={MARCA_LABEL[m]} totales={totalesPorMarca[m]} />
         ))}
         <TotalCard titulo="Total" totales={total} destacado />
+      </div>
+
+      {/* Navegación de mes */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => irAMes(-1)}
+          className="rounded-lg border border-borde p-1.5 text-texto-secundario hover:text-texto hover:border-rojo/50"
+          aria-label="Mes anterior"
+        >
+          <ChevronLeft size={16} />
+        </button>
+        <button
+          onClick={() => irAMes(1)}
+          className="rounded-lg border border-borde p-1.5 text-texto-secundario hover:text-texto hover:border-rojo/50"
+          aria-label="Mes siguiente"
+        >
+          <ChevronRight size={16} />
+        </button>
+        <span className="font-display text-base font-semibold text-texto capitalize ml-2">
+          {mesDeFecha(desde)}
+        </span>
       </div>
 
       {/* Filtros */}
@@ -133,10 +197,23 @@ export function FinanzasClient({
         </form>
       </Card>
 
-      {errorBorrar && (
+      {errorAccion && (
         <p className="text-sm text-rojo" role="alert">
-          {errorBorrar}
+          {errorAccion}
         </p>
+      )}
+
+      {movimientoEditando && (
+        <Card>
+          <CardHeader title="Editar movimiento" />
+          <MovimientoForm
+            tipo={movimientoEditando.tipo}
+            movimiento={movimientoEditando}
+            accion={actualizarMovimiento.bind(null, movimientoEditando.id)}
+            onCancelar={() => setEditandoId(null)}
+            onGuardado={() => setEditandoId(null)}
+          />
+        </Card>
       )}
 
       {/* Lista */}
@@ -146,7 +223,7 @@ export function FinanzasClient({
         </Card>
       ) : (
         <Card className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[720px]">
+          <table className="w-full text-sm min-w-[760px]">
             <thead>
               <tr className="text-left text-texto-secundario border-b border-borde">
                 <th className="font-normal py-2 px-2">Fecha</th>
@@ -182,14 +259,23 @@ export function FinanzasClient({
                   </td>
                   <td className="py-2.5 px-2 text-right">
                     {m.origen === "manual" && (
-                      <button
-                        onClick={() => borrar(m.id)}
-                        disabled={isPending}
-                        className="text-texto-secundario hover:text-rojo disabled:opacity-50"
-                        aria-label="Eliminar movimiento"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      <div className="flex items-center justify-end gap-3">
+                        <button
+                          onClick={() => setEditandoId(m.id)}
+                          className="text-texto-secundario hover:text-texto"
+                          aria-label="Editar movimiento"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          onClick={() => borrar(m.id)}
+                          disabled={isPending}
+                          className="text-texto-secundario hover:text-rojo disabled:opacity-50"
+                          aria-label="Eliminar movimiento"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     )}
                   </td>
                 </tr>
@@ -216,7 +302,7 @@ function TotalCard({
   return (
     <Card className={destacado ? "border-dorado/40" : undefined}>
       <div className="flex items-center justify-between">
-        <span className="text-sm text-texto-secundario">{titulo}</span>
+        <span className="text-sm font-medium text-texto">{titulo}</span>
         {totales.neto < 0 && (
           <Badge tono="negativo">
             <AlertTriangle size={12} className="mr-1" />

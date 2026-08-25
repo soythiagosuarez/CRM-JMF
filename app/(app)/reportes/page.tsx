@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight, Trophy } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { ExportarCsvButton } from "@/components/reportes/ExportarCsvButton";
+import { ExportarCsvButton } from "@/components/finanzas/ExportarCsvButton";
 import { obtenerReporteMes } from "@/lib/data/reportes";
 import { formatARS } from "@/lib/format";
 import { MARCA_LABEL, type MarcaMovimiento } from "@/lib/types/movimiento";

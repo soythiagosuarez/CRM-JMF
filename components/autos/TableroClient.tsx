@@ -1,15 +1,22 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Image from "next/image";
+import { Plus } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Modal } from "@/components/ui/Modal";
 import { OrdenModal } from "./OrdenModal";
 import { TurnoPopup } from "@/components/agenda/TurnoPopup";
+import { TurnoForm } from "@/components/agenda/TurnoForm";
 import { marcarIngresado } from "@/app/(app)/agenda/actions";
 import { moverOrdenEstado } from "@/app/(app)/autos/actions";
 import { FLAG_LABEL } from "@/lib/types/orden";
 import type { EstadoOrden, OrdenConDatos } from "@/lib/types/orden";
 import type { TurnoConDatos } from "@/lib/types/turno";
+import type { ClienteConVehiculos } from "@/lib/types/cliente";
+import type { Servicio } from "@/lib/types/servicio";
 
 type ColumnaId = "esperando_ingreso" | EstadoOrden;
 
@@ -41,12 +48,17 @@ interface Arrastrado {
 export function TableroClient({
   ordenes,
   esperandoIngreso,
+  clientes,
+  servicios,
 }: {
   ordenes: OrdenConDatos[];
   esperandoIngreso: TurnoConDatos[];
+  clientes: ClienteConVehiculos[];
+  servicios: Servicio[];
 }) {
   const [ordenAbierta, setOrdenAbierta] = useState<OrdenConDatos | null>(null);
   const [turnoAbierto, setTurnoAbierto] = useState<TurnoConDatos | null>(null);
+  const [nuevoTurnoAbierto, setNuevoTurnoAbierto] = useState(false);
   const [columnaSobrevolada, setColumnaSobrevolada] = useState<ColumnaId | null>(null);
   const [arrastrando, setArrastrando] = useState<Arrastrado | null>(null);
   const [, startTransition] = useTransition();
@@ -102,12 +114,21 @@ export function TableroClient({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-display text-2xl font-semibold text-texto">Gestión Detailing</h1>
-        <p className="text-sm text-texto-secundario mt-1">
-          Tablero de fases. Arrastrá las tarjetas para avanzar un auto — no se puede volver
-          para atrás.
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Image src="/brands/detailing.png" alt="" width={44} height={44} />
+          <div>
+            <h1 className="font-display text-2xl font-semibold text-texto">Gestión Detailing</h1>
+            <p className="text-sm text-texto-secundario mt-1">
+              Tablero de fases. Arrastrá las tarjetas para avanzar un auto — no se puede volver
+              para atrás.
+            </p>
+          </div>
+        </div>
+        <Button onClick={() => setNuevoTurnoAbierto(true)}>
+          <Plus size={16} />
+          Agendar turno
+        </Button>
       </div>
 
       {totalItems === 0 ? (
@@ -252,6 +273,16 @@ export function TableroClient({
       )}
       {turnoActualizado && (
         <TurnoPopup turno={turnoActualizado} onCerrar={() => setTurnoAbierto(null)} />
+      )}
+      {nuevoTurnoAbierto && (
+        <Modal titulo="Nuevo turno detailing" onCerrar={() => setNuevoTurnoAbierto(false)}>
+          <TurnoForm
+            clientes={clientes}
+            servicios={servicios}
+            onCancelar={() => setNuevoTurnoAbierto(false)}
+            onGuardado={() => setNuevoTurnoAbierto(false)}
+          />
+        </Modal>
       )}
     </div>
   );

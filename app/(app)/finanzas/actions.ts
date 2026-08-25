@@ -14,15 +14,7 @@ export interface EstadoMovimientoForm {
   ok?: boolean;
 }
 
-/**
- * Alta manual de movimiento — ESPECIFICACION.md §7 regla 1: esto es
- * únicamente para plata suelta. Los ingresos de órdenes cobradas, autos
- * vendidos o ventas de Shop se generan solos desde esos módulos.
- */
-export async function crearMovimiento(
-  _prevState: EstadoMovimientoForm,
-  formData: FormData
-): Promise<EstadoMovimientoForm> {
+function leerMovimientoInput(formData: FormData) {
   const tipo = String(formData.get("tipo") ?? "") as TipoMovimiento;
   const marca = String(formData.get("marca") ?? "") as MarcaMovimiento;
   const categoria = String(formData.get("categoria") ?? "").trim();
@@ -50,8 +42,7 @@ export async function crearMovimiento(
     monto_ars = monto * tipo_cambio;
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("movimientos").insert({
+  return {
     tipo,
     marca,
     categoria,
@@ -61,11 +52,54 @@ export async function crearMovimiento(
     tipo_cambio,
     medio_pago,
     fecha,
-    origen: "manual",
     descripcion,
-  });
+  };
+}
+
+/**
+ * Alta manual de movimiento — ESPECIFICACION.md §7 regla 1: esto es
+ * únicamente para plata suelta. Los ingresos de órdenes cobradas, autos
+ * vendidos o ventas de Shop se generan solos desde esos módulos.
+ */
+export async function crearMovimiento(
+  _prevState: EstadoMovimientoForm,
+  formData: FormData
+): Promise<EstadoMovimientoForm> {
+  const input = leerMovimientoInput(formData);
+  if ("error" in input) return { error: input.error };
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("movimientos").insert({ ...input, origen: "manual" });
 
   if (error) return { error: "No se pudo cargar el movimiento: " + error.message };
+
+  revalidatePath("/finanzas");
+  return { ok: true };
+}
+
+/** Solo se pueden editar movimientos manuales, por la misma razón que
+ * eliminarMovimiento: no romper la trazabilidad con su origen. */
+export async function actualizarMovimiento(
+  id: string,
+  _prevState: EstadoMovimientoForm,
+  formData: FormData
+): Promise<EstadoMovimientoForm> {
+  const input = leerMovimientoInput(formData);
+  if ("error" in input) return { error: input.error };
+
+  const supabase = await createClient();
+  const { data: mov, error: errorGet } = await supabase
+    .from("movimientos")
+    .select("origen")
+    .eq("id", id)
+    .single();
+  if (errorGet) return { error: errorGet.message };
+  if (mov.origen !== "manual") {
+    return { error: "Este movimiento nació de una orden/venta y no se puede editar acá." };
+  }
+
+  const { error } = await supabase.from("movimientos").update(input).eq("id", id);
+  if (error) return { error: "No se pudo guardar: " + error.message };
 
   revalidatePath("/finanzas");
   return { ok: true };

@@ -2,28 +2,32 @@
 
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { crearMovimiento, type EstadoMovimientoForm } from "@/app/(app)/finanzas/actions";
-import { CATEGORIAS, MARCA_LABEL, type MarcaMovimiento, type TipoMovimiento } from "@/lib/types/movimiento";
+import type { EstadoMovimientoForm } from "@/app/(app)/finanzas/actions";
+import { CATEGORIAS, MARCA_LABEL, type MarcaMovimiento, type MonedaMovimiento, type Movimiento, type TipoMovimiento } from "@/lib/types/movimiento";
 
 const estadoInicial: EstadoMovimientoForm = {};
 
 export function MovimientoForm({
   tipo,
+  movimiento,
+  accion,
   onCancelar,
   onGuardado,
 }: {
   tipo: TipoMovimiento;
+  movimiento?: Movimiento;
+  accion: (prevState: EstadoMovimientoForm, formData: FormData) => Promise<EstadoMovimientoForm>;
   onCancelar: () => void;
   onGuardado: () => void;
 }) {
   const marcasDisponibles = (Object.keys(MARCA_LABEL) as MarcaMovimiento[]).filter(
     (m) => CATEGORIAS[tipo][m].length > 0
   );
-  const [marca, setMarca] = useState<MarcaMovimiento>(marcasDisponibles[0]);
-  const [moneda, setMoneda] = useState("ARS");
+  const [marca, setMarca] = useState<MarcaMovimiento>(movimiento?.marca ?? marcasDisponibles[0]);
+  const [moneda, setMoneda] = useState<MonedaMovimiento>(movimiento?.moneda_original ?? "ARS");
   const [estado, formAction, enviando] = useActionState(
     async (prev: EstadoMovimientoForm, formData: FormData) => {
-      const resultado = await crearMovimiento(prev, formData);
+      const resultado = await accion(prev, formData);
       if (resultado.ok) onGuardado();
       return resultado;
     },
@@ -33,11 +37,13 @@ export function MovimientoForm({
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <input type="hidden" name="tipo" value={tipo} />
-      <p className="text-sm text-texto-secundario">
-        {tipo === "ingreso"
-          ? "Solo para plata suelta: los cobros de órdenes, ventas de Shop y autos vendidos se cargan solos."
-          : "Egreso manual (alquiler, insumos, sueldos, etc.)."}
-      </p>
+      {!movimiento && (
+        <p className="text-sm text-texto-secundario">
+          {tipo === "ingreso"
+            ? "Solo para plata suelta: los cobros de órdenes, ventas de Shop y autos vendidos se cargan solos."
+            : "Egreso manual (alquiler, insumos, sueldos, etc.)."}
+        </p>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="flex flex-col gap-1.5">
@@ -64,7 +70,13 @@ export function MovimientoForm({
           <label htmlFor="categoria" className="text-sm text-texto-secundario">
             Categoría
           </label>
-          <select id="categoria" name="categoria" required defaultValue="" className="campo">
+          <select
+            id="categoria"
+            name="categoria"
+            required
+            defaultValue={movimiento?.categoria ?? ""}
+            className="campo"
+          >
             <option value="" disabled>
               Elegí una categoría
             </option>
@@ -80,7 +92,16 @@ export function MovimientoForm({
           <label htmlFor="monto" className="text-sm text-texto-secundario">
             Monto
           </label>
-          <input id="monto" name="monto" type="number" min="0" step="0.01" required className="campo" />
+          <input
+            id="monto"
+            name="monto"
+            type="number"
+            min="0"
+            step="0.01"
+            required
+            defaultValue={movimiento?.monto ?? ""}
+            className="campo"
+          />
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -91,7 +112,7 @@ export function MovimientoForm({
             id="moneda_original"
             name="moneda_original"
             value={moneda}
-            onChange={(e) => setMoneda(e.target.value)}
+            onChange={(e) => setMoneda(e.target.value as MonedaMovimiento)}
             className="campo"
           >
             <option value="ARS">ARS</option>
@@ -113,6 +134,7 @@ export function MovimientoForm({
               min="0"
               step="0.01"
               required
+              defaultValue={movimiento?.tipo_cambio ?? ""}
               className="campo"
             />
           </div>
@@ -122,7 +144,12 @@ export function MovimientoForm({
           <label htmlFor="medio_pago" className="text-sm text-texto-secundario">
             Medio de pago
           </label>
-          <select id="medio_pago" name="medio_pago" defaultValue="" className="campo">
+          <select
+            id="medio_pago"
+            name="medio_pago"
+            defaultValue={movimiento?.medio_pago ?? ""}
+            className="campo"
+          >
             <option value="">Sin especificar</option>
             <option value="efectivo_pesos">Efectivo pesos</option>
             <option value="efectivo_dolares">Efectivo dólares</option>
@@ -141,7 +168,7 @@ export function MovimientoForm({
             name="fecha"
             type="date"
             required
-            defaultValue={new Date().toISOString().slice(0, 10)}
+            defaultValue={movimiento?.fecha ?? new Date().toISOString().slice(0, 10)}
             className="campo"
           />
         </div>
@@ -151,7 +178,12 @@ export function MovimientoForm({
         <label htmlFor="descripcion" className="text-sm text-texto-secundario">
           Descripción
         </label>
-        <input id="descripcion" name="descripcion" className="campo" />
+        <input
+          id="descripcion"
+          name="descripcion"
+          defaultValue={movimiento?.descripcion ?? ""}
+          className="campo"
+        />
       </div>
 
       {estado.error && (
@@ -165,7 +197,13 @@ export function MovimientoForm({
           Cancelar
         </Button>
         <Button type="submit" disabled={enviando}>
-          {enviando ? "Guardando..." : tipo === "ingreso" ? "Cargar ingreso" : "Cargar egreso"}
+          {enviando
+            ? "Guardando..."
+            : movimiento
+              ? "Guardar cambios"
+              : tipo === "ingreso"
+                ? "Cargar ingreso"
+                : "Cargar egreso"}
         </Button>
       </div>
     </form>

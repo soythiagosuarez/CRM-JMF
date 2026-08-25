@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { navGroups, configItem } from "./nav-items";
 
@@ -36,22 +35,10 @@ export function Sidebar() {
 
   return (
     <aside className="hidden md:flex md:w-64 md:flex-col shrink-0 border-r border-borde bg-fondo-2 h-full">
-      <div className="flex items-center gap-2 px-5 h-16 border-b border-borde">
-        <Image
-          src="/logo-isotipo.svg"
-          alt=""
-          width={28}
-          height={28}
-          priority
-        />
-        <div className="leading-tight">
-          <p className="font-display text-sm font-semibold text-texto">
-            Centro de
-          </p>
-          <p className="font-display text-sm font-semibold text-texto -mt-0.5">
-            Operaciones
-          </p>
-        </div>
+      <div className="flex items-center px-5 h-16 border-b border-borde">
+        <p className="font-display text-base font-semibold text-texto leading-tight">
+          Centro de Operaciones JMF
+        </p>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-6">
