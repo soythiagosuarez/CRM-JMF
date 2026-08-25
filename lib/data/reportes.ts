@@ -72,3 +72,30 @@ export async function obtenerReporteMes(referencia: string): Promise<ReporteMes>
     movimientos,
   };
 }
+
+export interface ReporteMarca {
+  marca: MarcaMovimiento;
+  desde: string;
+  hasta: string;
+  ingresos: number;
+  egresos: number;
+  neto: number;
+  movimientos: Awaited<ReturnType<typeof listarMovimientos>>;
+}
+
+/** Mismo mes que obtenerReporteMes, pero recortado a una sola marca —
+ * para el desglose por marca de Reportes (§ feedback: CTA por fila). */
+export async function obtenerReporteMarca(
+  referencia: string,
+  marca: MarcaMovimiento
+): Promise<ReporteMarca> {
+  const { desde, hasta } = rangoDelMes(referencia);
+  const movimientos = (await listarMovimientos({ desde, hasta })).filter(
+    (m) => m.marca === marca
+  );
+
+  const { porMarca } = calcularTotales(movimientos);
+  const t = porMarca.get(marca) ?? { ingresos: 0, egresos: 0, neto: 0 };
+
+  return { marca, desde, hasta, ingresos: t.ingresos, egresos: t.egresos, neto: t.neto, movimientos };
+}

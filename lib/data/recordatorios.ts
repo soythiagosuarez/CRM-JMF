@@ -17,10 +17,12 @@ export async function listarRecordatorios(): Promise<RecordatorioConDatos[]> {
 
   return (data as unknown as RecordatorioCrudo[]).map((r) => ({
     ...r,
-    cliente_nombre: r.clientes?.nombre_completo ?? "Cliente sin datos",
+    cliente_nombre:
+      r.clientes?.nombre_completo ?? (r.tipo === "nota" ? null : "Cliente sin datos"),
     cliente_telefono: r.clientes?.telefono ?? null,
-    vehiculo_descripcion:
-      [r.vehiculos?.marca, r.vehiculos?.modelo].filter(Boolean).join(" ") +
-      (r.vehiculos?.patente ? ` · ${r.vehiculos.patente}` : ""),
+    vehiculo_descripcion: r.vehiculos
+      ? [r.vehiculos.marca, r.vehiculos.modelo].filter(Boolean).join(" ") +
+        (r.vehiculos.patente ? ` · ${r.vehiculos.patente}` : "")
+      : null,
   }));
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState, useTransition } from "react";
-import { MessageCircle, Pencil, Check, X } from "lucide-react";
+import { MessageCircle, Pencil, Check, X, Plus } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -10,6 +10,7 @@ import {
   actualizarRecordatorio,
   type EstadoFechaForm,
 } from "@/app/(app)/recordatorios/actions";
+import { RecordatorioForm } from "./RecordatorioForm";
 import { linkWhatsapp, mensajeMantenimiento, mensajeRenovacion } from "@/lib/whatsapp";
 import { formatFecha } from "@/lib/format";
 import { TIPO_LABEL, ESTADO_LABEL } from "@/lib/types/recordatorio";
@@ -24,6 +25,7 @@ const ESTADO_TONO: Record<EstadoRecordatorio, "neutro" | "positivo" | "negativo"
 const TIPO_TONO: Record<TipoRecordatorio, "premium" | "neutro"> = {
   mantenimiento: "neutro",
   renovacion: "premium",
+  nota: "neutro",
 };
 
 export function RecordatoriosClient({
@@ -32,6 +34,7 @@ export function RecordatoriosClient({
   recordatorios: RecordatorioConDatos[];
 }) {
   const [editandoId, setEditandoId] = useState<string | null>(null);
+  const [creando, setCreando] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const pendientes = recordatorios.filter((r) => r.estado === "pendiente");
@@ -39,13 +42,27 @@ export function RecordatoriosClient({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-display text-2xl font-semibold text-texto">Recordatorios</h1>
-        <p className="text-sm text-texto-secundario mt-1">
-          Mantenimientos y renovaciones próximos. Se generan solos al entregar una orden de
-          tratamiento.
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-semibold text-texto">Recordatorios</h1>
+          <p className="text-sm text-texto-secundario mt-1">
+            Mantenimientos y renovaciones se generan solos al entregar una orden de tratamiento.
+            También podés anotar algo aparte para tu marca.
+          </p>
+        </div>
+        {!creando && (
+          <Button onClick={() => setCreando(true)}>
+            <Plus size={16} />
+            Nuevo recordatorio
+          </Button>
+        )}
       </div>
+
+      {creando && (
+        <Card>
+          <RecordatorioForm onCancelar={() => setCreando(false)} onGuardado={() => setCreando(false)} />
+        </Card>
+      )}
 
       {pendientes.length === 0 ? (
         <Card className="flex flex-col items-center gap-2 py-16 text-center">
@@ -68,10 +85,17 @@ export function RecordatoriosClient({
             ) : (
               <Card key={r.id} className="flex items-center justify-between gap-4 flex-wrap">
                 <div className="min-w-0">
-                  <p className="text-sm text-texto font-medium truncate">{r.cliente_nombre}</p>
+                  <p className="text-sm text-texto font-medium truncate">
+                    {r.tipo === "nota" ? r.titulo : r.cliente_nombre}
+                  </p>
                   <p className="text-xs text-texto-secundario truncate mt-0.5">
-                    {r.vehiculo_descripcion || "Sin vehículo"} · {r.tratamiento} ·{" "}
-                    {r.fecha_proxima ? formatFecha(r.fecha_proxima) : "Sin fecha"}
+                    {r.tipo === "nota"
+                      ? r.fecha_proxima
+                        ? formatFecha(r.fecha_proxima)
+                        : "Sin fecha"
+                      : `${r.vehiculo_descripcion || "Sin vehículo"} · ${r.tratamiento} · ${
+                          r.fecha_proxima ? formatFecha(r.fecha_proxima) : "Sin fecha"
+                        }`}
                   </p>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
@@ -83,14 +107,17 @@ export function RecordatoriosClient({
                   >
                     <Pencil size={14} />
                   </button>
-                  {r.cliente_telefono && (
+                  {r.tipo !== "nota" && r.cliente_telefono && (
                     <a
                       href={linkWhatsapp(
                         r.cliente_telefono,
                         r.tipo === "mantenimiento"
-                          ? mensajeMantenimiento(r.cliente_nombre, r.tratamiento ?? "tratamiento")
+                          ? mensajeMantenimiento(
+                              r.cliente_nombre ?? "",
+                              r.tratamiento ?? "tratamiento"
+                            )
                           : mensajeRenovacion(
-                              r.cliente_nombre,
+                              r.cliente_nombre ?? "",
                               r.tratamiento ?? "tratamiento",
                               r.vehiculo_descripcion || "tu vehículo"
                             )
@@ -139,9 +166,11 @@ export function RecordatoriosClient({
           {resueltos.map((r) => (
             <Card key={r.id} className="flex items-center justify-between gap-4 opacity-60">
               <div className="min-w-0">
-                <p className="text-sm text-texto truncate">{r.cliente_nombre}</p>
+                <p className="text-sm text-texto truncate">
+                  {r.tipo === "nota" ? r.titulo : r.cliente_nombre}
+                </p>
                 <p className="text-xs text-texto-secundario truncate mt-0.5">
-                  {r.tratamiento} ·{" "}
+                  {r.tipo !== "nota" && `${r.tratamiento} · `}
                   {r.fecha_proxima ? formatFecha(r.fecha_proxima) : "Sin fecha"}
                 </p>
               </div>

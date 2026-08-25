@@ -11,6 +11,38 @@ export async function cambiarEstadoRecordatorio(id: string, estado: EstadoRecord
   revalidatePath("/recordatorios");
 }
 
+export interface EstadoNotaForm {
+  error?: string;
+  ok?: boolean;
+}
+
+/**
+ * Recordatorio libre, sin cliente/vehículo/orden — para que el usuario
+ * también pueda usar esta sección para su marca en general (grabar
+ * contenido, pagar factura de luz, hablarle a un proveedor, etc).
+ */
+export async function crearRecordatorioNota(
+  _prevState: EstadoNotaForm,
+  formData: FormData
+): Promise<EstadoNotaForm> {
+  const titulo = String(formData.get("titulo") ?? "").trim();
+  if (!titulo) return { error: "Cargá qué hay que hacer." };
+
+  const fecha_proxima = String(formData.get("fecha_proxima") ?? "").trim() || null;
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("recordatorios").insert({
+    tipo: "nota",
+    titulo,
+    fecha_proxima,
+    estado: "pendiente",
+  });
+  if (error) return { error: "No se pudo cargar el recordatorio: " + error.message };
+
+  revalidatePath("/recordatorios");
+  return { ok: true };
+}
+
 export interface EstadoFechaForm {
   error?: string;
   ok?: boolean;
