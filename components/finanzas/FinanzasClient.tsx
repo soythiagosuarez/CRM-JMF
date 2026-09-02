@@ -2,10 +2,11 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Minus, AlertTriangle, Trash2, Pencil, ChevronLeft, ChevronRight, Info } from "lucide-react";
+import { Minus, AlertTriangle, Trash2, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { MovimientoForm } from "./MovimientoForm";
 import { ExportarCsvButton } from "./ExportarCsvButton";
 import { crearMovimiento, actualizarMovimiento, eliminarMovimiento } from "@/app/(app)/finanzas/actions";
@@ -110,19 +111,16 @@ export function FinanzasClient({
             medio de pago.
           </p>
         </div>
-        <div className="flex flex-col items-end gap-1.5">
-          <div className="flex gap-2">
-            <Button onClick={() => setAlta(true)}>
-              <Minus size={16} />
-              Egreso
-            </Button>
-            <ExportarCsvButton movimientos={movimientos} nombreArchivo={`finanzas-${desde}_a_${hasta}`} />
-          </div>
-          <p className="flex items-center gap-1.5 text-xs text-texto-secundario max-w-sm text-right">
-            <Info size={12} className="shrink-0" />
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setAlta(true)}>
+            <Minus size={16} />
+            Egreso
+          </Button>
+          <ExportarCsvButton movimientos={movimientos} nombreArchivo={`finanzas-${desde}_a_${hasta}`} />
+          <InfoTooltip>
             No hay botón de ingreso: los cobros de órdenes, ventas de Shop y autos vendidos se
             cargan solos para evitar anotarlos dos veces.
-          </p>
+          </InfoTooltip>
         </div>
       </div>
 

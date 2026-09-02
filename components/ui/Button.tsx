@@ -20,7 +20,7 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${variantes[variante]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:pointer-events-none disabled:!bg-panel-2 disabled:!text-texto-secundario disabled:!border disabled:!border-borde disabled:hover:!brightness-100 ${variantes[variante]} ${className}`}
       {...props}
     />
   );
