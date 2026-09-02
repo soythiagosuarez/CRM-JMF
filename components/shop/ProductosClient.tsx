@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Image from "next/image";
-import { Plus, Pencil, Trash2, ShoppingCart, AlertTriangle, ExternalLink } from "lucide-react";
+import { Plus, Pencil, Trash2, ShoppingCart, AlertTriangle } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -43,14 +43,6 @@ export function ProductosClient({ productos }: { productos: Producto[] }) {
           </div>
         </div>
         <div className="flex gap-2">
-          <button
-            disabled
-            title="Pendiente: crear la cuenta de MercadoLibre (ESPECIFICACION.md §10)"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-borde px-4 py-2 text-sm text-texto-secundario opacity-50 cursor-not-allowed"
-          >
-            <ExternalLink size={16} />
-            MercadoLibre (pendiente)
-          </button>
           {!creando && (
             <Button onClick={() => setCreando(true)}>
               <Plus size={16} />

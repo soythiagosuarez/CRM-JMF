@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { obtenerConfiguracion } from "@/lib/data/config";
+import { DIA_SEMANA_POR_INDICE, DIA_LABEL } from "@/lib/types/config";
 import type { TurnoInput } from "@/lib/types/turno";
+import type { Horarios } from "@/lib/types/config";
 
 export interface EstadoTurnoForm {
   error?: string;
@@ -10,33 +13,31 @@ export interface EstadoTurnoForm {
 }
 
 /**
- * Horarios de atención — ESPECIFICACION.md §6.4:
- * lunes a viernes 9–18, sábados 10–13. Domingo cerrado.
+ * Horarios de atención — configurables en Config (antes hardcodeados,
+ * ver ESPECIFICACION.md §6.4 para los valores originales por defecto).
  */
-function validarHorario(fecha: string, hora: string): string | null {
+function validarHorario(fecha: string, hora: string, horarios: Horarios): string | null {
   const [anio, mes, dia] = fecha.split("-").map(Number);
-  const diaSemana = new Date(anio, mes - 1, dia).getDay(); // 0=domingo ... 6=sábado
+  const diaSemana = DIA_SEMANA_POR_INDICE[new Date(anio, mes - 1, dia).getDay()];
+  const horario = horarios[diaSemana];
   const minutos = (() => {
     const [h, m] = hora.split(":").map(Number);
     return h * 60 + m;
   })();
 
-  if (diaSemana === 0) return "Los domingos el taller está cerrado.";
-  if (diaSemana === 6) {
-    if (minutos < 10 * 60 || minutos > 13 * 60) {
-      return "Los sábados el horario de atención es de 10 a 13.";
-    }
-    return null;
-  }
-  if (minutos < 9 * 60 || minutos > 18 * 60) {
-    return "De lunes a viernes el horario de atención es de 9 a 18.";
+  if (horario.cerrado) return `Los ${DIA_LABEL[diaSemana].toLowerCase()} el taller está cerrado.`;
+
+  const [hDesde, mDesde] = horario.desde.split(":").map(Number);
+  const [hHasta, mHasta] = horario.hasta.split(":").map(Number);
+  if (minutos < hDesde * 60 + mDesde || minutos > hHasta * 60 + mHasta) {
+    return `El horario de atención los ${DIA_LABEL[diaSemana].toLowerCase()} es de ${horario.desde} a ${horario.hasta}.`;
   }
   return null;
 }
 
-function leerDatosComunes(
+async function leerDatosComunes(
   formData: FormData
-): { fecha: string; hora: string; servicios_previstos: string[] } | { error: string } {
+): Promise<{ fecha: string; hora: string; servicios_previstos: string[] } | { error: string }> {
   const fecha = String(formData.get("fecha") ?? "");
   const hora = String(formData.get("hora") ?? "");
   const servicios_previstos = formData.getAll("servicios_previstos").map(String);
@@ -46,7 +47,8 @@ function leerDatosComunes(
     return { error: "Elegí al menos un servicio previsto." };
   }
 
-  const errorHorario = validarHorario(fecha, hora);
+  const { horarios } = await obtenerConfiguracion();
+  const errorHorario = validarHorario(fecha, hora, horarios);
   if (errorHorario) return { error: errorHorario };
 
   return { fecha, hora, servicios_previstos };
@@ -64,7 +66,7 @@ export async function crearTurno(
   _prevState: EstadoTurnoForm,
   formData: FormData
 ): Promise<EstadoTurnoForm> {
-  const comunes = leerDatosComunes(formData);
+  const comunes = await leerDatosComunes(formData);
   if ("error" in comunes) return { error: comunes.error };
 
   const supabase = await createClient();

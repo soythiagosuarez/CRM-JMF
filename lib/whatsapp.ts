@@ -7,6 +7,13 @@ export function linkWhatsapp(telefono: string, mensaje: string): string {
   return `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
 }
 
+/** Variante sin destinatario fijo (ej. recordatorios libres, sin un
+ * cliente asociado): abre WhatsApp con el mensaje listo y el usuario
+ * elige a quién mandárselo. */
+export function linkWhatsappSinDestino(mensaje: string): string {
+  return `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+}
+
 export function mensajeCambioFase(cliente: string, auto: string, fase: string): string {
   return `Hola ${cliente}, te contamos que tu ${auto} ya pasó a la etapa de ${fase}. Cualquier cosa quedamos a disposición. — JMF Detailing`;
 }

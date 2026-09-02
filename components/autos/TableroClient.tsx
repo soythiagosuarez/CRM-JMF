@@ -17,6 +17,7 @@ import type { EstadoOrden, OrdenConDatos } from "@/lib/types/orden";
 import type { TurnoConDatos } from "@/lib/types/turno";
 import type { ClienteConVehiculos } from "@/lib/types/cliente";
 import type { Servicio } from "@/lib/types/servicio";
+import type { Horarios } from "@/lib/types/config";
 
 type ColumnaId = "esperando_ingreso" | EstadoOrden;
 
@@ -50,11 +51,13 @@ export function TableroClient({
   esperandoIngreso,
   clientes,
   servicios,
+  horarios,
 }: {
   ordenes: OrdenConDatos[];
   esperandoIngreso: TurnoConDatos[];
   clientes: ClienteConVehiculos[];
   servicios: Servicio[];
+  horarios: Horarios;
 }) {
   const [ordenAbierta, setOrdenAbierta] = useState<OrdenConDatos | null>(null);
   const [turnoAbierto, setTurnoAbierto] = useState<TurnoConDatos | null>(null);
@@ -279,6 +282,7 @@ export function TableroClient({
           <TurnoForm
             clientes={clientes}
             servicios={servicios}
+            horarios={horarios}
             onCancelar={() => setNuevoTurnoAbierto(false)}
             onGuardado={() => setNuevoTurnoAbierto(false)}
           />

@@ -24,9 +24,11 @@ import {
   etiquetaRangoSemana,
   esHoy,
 } from "@/lib/agenda-dates";
+import { resumenHorarios } from "@/lib/types/config";
 import type { TurnoConDatos } from "@/lib/types/turno";
 import type { ClienteConVehiculos } from "@/lib/types/cliente";
 import type { Servicio } from "@/lib/types/servicio";
+import type { Horarios } from "@/lib/types/config";
 
 type Vista = "mes" | "semana" | "dia";
 
@@ -40,6 +42,7 @@ export function CalendarioClient({
   turnos,
   clientes,
   servicios,
+  horarios,
   vista,
   fecha,
   cantidadTurnosHoy,
@@ -47,6 +50,7 @@ export function CalendarioClient({
   turnos: TurnoConDatos[];
   clientes: ClienteConVehiculos[];
   servicios: Servicio[];
+  horarios: Horarios;
   vista: Vista;
   fecha: string;
   cantidadTurnosHoy: number;
@@ -110,7 +114,7 @@ export function CalendarioClient({
         <div>
           <h1 className="font-display text-2xl font-semibold text-texto">Agenda</h1>
           <p className="text-sm text-texto-secundario mt-1">
-            Turnos de servicio confirmados. Lun a vie 9–18 · Sáb 10–13.
+            Turnos de servicio confirmados. {resumenHorarios(horarios)}.
           </p>
         </div>
         <div className="flex gap-2">
@@ -214,6 +218,7 @@ export function CalendarioClient({
           <TurnoForm
             clientes={clientes}
             servicios={servicios}
+            horarios={horarios}
             fechaInicial={fechaNuevoTurno}
             onCancelar={() => setFechaNuevoTurno(null)}
             onGuardado={() => setFechaNuevoTurno(null)}

@@ -9,7 +9,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const variantes: Record<Variante, string> = {
   primario: "bg-rojo text-white hover:brightness-110",
   secundario:
-    "bg-panel-2 text-texto border border-borde hover:border-rojo",
+    "bg-transparent text-rojo border border-rojo hover:brightness-110",
   fantasma: "bg-transparent text-texto-secundario hover:text-texto",
 };
 

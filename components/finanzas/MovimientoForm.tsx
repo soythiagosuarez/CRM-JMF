@@ -3,25 +3,28 @@
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import type { EstadoMovimientoForm } from "@/app/(app)/finanzas/actions";
-import { CATEGORIAS, MARCA_LABEL, type MarcaMovimiento, type MonedaMovimiento, type Movimiento, type TipoMovimiento } from "@/lib/types/movimiento";
+import { MARCA_LABEL, type MarcaMovimiento, type MonedaMovimiento, type Movimiento, type TipoMovimiento } from "@/lib/types/movimiento";
+import type { CategoriasMovimiento } from "@/lib/types/config";
 
 const estadoInicial: EstadoMovimientoForm = {};
 
 export function MovimientoForm({
   tipo,
   movimiento,
+  categoriasMovimiento,
   accion,
   onCancelar,
   onGuardado,
 }: {
   tipo: TipoMovimiento;
   movimiento?: Movimiento;
+  categoriasMovimiento: CategoriasMovimiento;
   accion: (prevState: EstadoMovimientoForm, formData: FormData) => Promise<EstadoMovimientoForm>;
   onCancelar: () => void;
   onGuardado: () => void;
 }) {
   const marcasDisponibles = (Object.keys(MARCA_LABEL) as MarcaMovimiento[]).filter(
-    (m) => CATEGORIAS[tipo][m].length > 0
+    (m) => categoriasMovimiento[tipo][m].length > 0
   );
   const [marca, setMarca] = useState<MarcaMovimiento>(movimiento?.marca ?? marcasDisponibles[0]);
   const [moneda, setMoneda] = useState<MonedaMovimiento>(movimiento?.moneda_original ?? "ARS");
@@ -80,7 +83,7 @@ export function MovimientoForm({
             <option value="" disabled>
               Elegí una categoría
             </option>
-            {CATEGORIAS[tipo][marca].map((c) => (
+            {categoriasMovimiento[tipo][marca].map((c) => (
               <option key={c} value={c}>
                 {c}
               </option>

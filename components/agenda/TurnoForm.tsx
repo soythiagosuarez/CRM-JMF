@@ -3,20 +3,24 @@
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { crearTurno, type EstadoTurnoForm } from "@/app/(app)/agenda/actions";
+import { resumenHorarios } from "@/lib/types/config";
 import type { ClienteConVehiculos } from "@/lib/types/cliente";
 import type { Servicio } from "@/lib/types/servicio";
+import type { Horarios } from "@/lib/types/config";
 
 const estadoInicial: EstadoTurnoForm = {};
 
 export function TurnoForm({
   clientes,
   servicios,
+  horarios,
   fechaInicial,
   onCancelar,
   onGuardado,
 }: {
   clientes: ClienteConVehiculos[];
   servicios: Servicio[];
+  horarios: Horarios;
   fechaInicial?: string;
   onCancelar: () => void;
   onGuardado: () => void;
@@ -151,7 +155,7 @@ export function TurnoForm({
           </label>
           <input id="hora" name="hora" type="time" required className="campo" />
           <p className="text-xs text-texto-secundario">
-            Lun a vie 9–18 · Sáb 10–13
+            {resumenHorarios(horarios)}
           </p>
         </div>
       </div>

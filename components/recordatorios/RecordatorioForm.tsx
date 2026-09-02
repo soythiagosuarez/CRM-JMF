@@ -1,8 +1,10 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { crearRecordatorioNota, type EstadoNotaForm } from "@/app/(app)/recordatorios/actions";
+import { MEDIO_LABEL } from "@/lib/types/recordatorio";
+import type { FrecuenciaTipo, MedioRecordatorio } from "@/lib/types/recordatorio";
 
 const estadoInicial: EstadoNotaForm = {};
 
@@ -13,6 +15,9 @@ export function RecordatorioForm({
   onCancelar: () => void;
   onGuardado: () => void;
 }) {
+  const [fecha, setFecha] = useState("");
+  const [frecuencia, setFrecuencia] = useState<FrecuenciaTipo | "">("");
+  const [medio, setMedio] = useState<MedioRecordatorio | "">("");
   const [estado, formAction, enviando] = useActionState(
     async (prev: EstadoNotaForm, formData: FormData) => {
       const resultado = await crearRecordatorioNota(prev, formData);
@@ -37,11 +42,127 @@ export function RecordatorioForm({
         />
       </div>
 
-      <div className="flex flex-col gap-1.5 max-w-xs">
-        <label htmlFor="fecha_proxima" className="text-sm text-texto-secundario">
-          Fecha (opcional)
-        </label>
-        <input id="fecha_proxima" name="fecha_proxima" type="date" className="campo" />
+      <div className="rounded-lg border border-borde p-3 flex flex-col gap-3">
+        <p className="text-xs text-texto-secundario">
+          Fecha y hora exacta, opcional. Si la cargás, el recordatorio se marca como hecho solo
+          ese día.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="fecha_proxima" className="text-sm text-texto-secundario">
+              Fecha
+            </label>
+            <input
+              id="fecha_proxima"
+              name="fecha_proxima"
+              type="date"
+              value={fecha}
+              onChange={(e) => setFecha(e.target.value)}
+              className="campo"
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="hora_proxima" className="text-sm text-texto-secundario">
+              Hora
+            </label>
+            <input
+              id="hora_proxima"
+              name="hora_proxima"
+              type="time"
+              disabled={!fecha}
+              className="campo disabled:opacity-40"
+            />
+          </div>
+        </div>
+        {fecha && (
+          <label className="flex items-center gap-1.5 text-xs text-texto-secundario">
+            <input type="checkbox" name="auto_completar" defaultChecked className="accent-rojo" />
+            Marcar como hecho automáticamente ese día
+          </label>
+        )}
+      </div>
+
+      <div className="rounded-lg border border-borde p-3 flex flex-col gap-3">
+        <p className="text-xs text-texto-secundario">
+          Repetición, opcional. La plataforma te lo va a mostrar como pendiente todo este
+          tiempo y te da un botón para mandarlo por el medio que elijas — no se envía solo.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="frecuencia_tipo" className="text-sm text-texto-secundario">
+              Cada cuánto recordar
+            </label>
+            <select
+              id="frecuencia_tipo"
+              name="frecuencia_tipo"
+              value={frecuencia}
+              onChange={(e) => setFrecuencia(e.target.value as FrecuenciaTipo | "")}
+              className="campo"
+            >
+              <option value="">Sin repetición</option>
+              <option value="diario">Todos los días</option>
+              <option value="cada_x_dias">Cada X días</option>
+              <option value="cada_x_horas_o_minutos">Cada X horas o minutos</option>
+            </select>
+          </div>
+
+          {frecuencia === "cada_x_dias" && (
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="frecuencia_intervalo_dias" className="text-sm text-texto-secundario">
+                Cada cuántos días
+              </label>
+              <input
+                id="frecuencia_intervalo_dias"
+                name="frecuencia_intervalo_dias"
+                type="number"
+                min="1"
+                defaultValue="1"
+                className="campo"
+              />
+            </div>
+          )}
+
+          {frecuencia === "cada_x_horas_o_minutos" && (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm text-texto-secundario">Cada cuánto</label>
+              <div className="flex gap-2">
+                <input
+                  name="frecuencia_intervalo_horas"
+                  type="number"
+                  min="1"
+                  defaultValue="30"
+                  className="campo"
+                />
+                <select name="frecuencia_unidad" defaultValue="minutos" className="campo">
+                  <option value="minutos">Minutos</option>
+                  <option value="horas">Horas</option>
+                </select>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {frecuencia && (
+          <div className="flex flex-col gap-1.5 max-w-xs">
+            <label htmlFor="medio" className="text-sm text-texto-secundario">
+              Por dónde
+            </label>
+            <select
+              id="medio"
+              name="medio"
+              value={medio}
+              onChange={(e) => setMedio(e.target.value as MedioRecordatorio | "")}
+              className="campo"
+            >
+              <option value="">Elegí un medio</option>
+              {(Object.keys(MEDIO_LABEL) as MedioRecordatorio[]).map((m) => (
+                <option key={m} value={m}>
+                  {MEDIO_LABEL[m]}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {estado.error && (

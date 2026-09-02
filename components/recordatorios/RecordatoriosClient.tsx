@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState, useTransition } from "react";
-import { MessageCircle, Pencil, Check, X, Plus } from "lucide-react";
+import { MessageCircle, Pencil, Check, X, Plus, Send } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -12,8 +12,9 @@ import {
 } from "@/app/(app)/recordatorios/actions";
 import { RecordatorioForm } from "./RecordatorioForm";
 import { linkWhatsapp, mensajeMantenimiento, mensajeRenovacion } from "@/lib/whatsapp";
+import { linkRecordatorio } from "@/lib/recordatorio-links";
 import { formatFecha } from "@/lib/format";
-import { TIPO_LABEL, ESTADO_LABEL } from "@/lib/types/recordatorio";
+import { TIPO_LABEL, ESTADO_LABEL, MEDIO_LABEL, resumenFrecuencia } from "@/lib/types/recordatorio";
 import type { EstadoRecordatorio, RecordatorioConDatos, TipoRecordatorio } from "@/lib/types/recordatorio";
 
 const ESTADO_TONO: Record<EstadoRecordatorio, "neutro" | "positivo" | "negativo"> = {
@@ -91,11 +92,14 @@ export function RecordatoriosClient({
                   <p className="text-xs text-texto-secundario truncate mt-0.5">
                     {r.tipo === "nota"
                       ? r.fecha_proxima
-                        ? formatFecha(r.fecha_proxima)
+                        ? `${formatFecha(r.fecha_proxima)}${r.hora_proxima ? ` · ${r.hora_proxima.slice(0, 5)}` : ""}`
                         : "Sin fecha"
                       : `${r.vehiculo_descripcion || "Sin vehículo"} · ${r.tratamiento} · ${
                           r.fecha_proxima ? formatFecha(r.fecha_proxima) : "Sin fecha"
                         }`}
+                    {r.tipo === "nota" &&
+                      resumenFrecuencia(r.frecuencia_tipo, r.frecuencia_intervalo, r.frecuencia_unidad) &&
+                      ` · ${resumenFrecuencia(r.frecuencia_tipo, r.frecuencia_intervalo, r.frecuencia_unidad)}`}
                   </p>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
@@ -107,6 +111,17 @@ export function RecordatoriosClient({
                   >
                     <Pencil size={14} />
                   </button>
+                  {r.tipo === "nota" && r.medio && (
+                    <a
+                      href={linkRecordatorio(r.medio, r.titulo ?? "Recordatorio")}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs text-verde hover:underline"
+                    >
+                      <Send size={14} />
+                      {MEDIO_LABEL[r.medio]}
+                    </a>
+                  )}
                   {r.tipo !== "nota" && r.cliente_telefono && (
                     <a
                       href={linkWhatsapp(

@@ -1,4 +1,5 @@
 import { listarMovimientos, calcularTotales } from "@/lib/data/movimientos";
+import { obtenerConfiguracion } from "@/lib/data/config";
 import { FinanzasClient } from "@/components/finanzas/FinanzasClient";
 
 function rangoMesActual() {
@@ -29,7 +30,10 @@ export default async function FinanzasPage({
     medio_pago: params.medio_pago || undefined,
   };
 
-  const movimientos = await listarMovimientos(filtros);
+  const [movimientos, configuracion] = await Promise.all([
+    listarMovimientos(filtros),
+    obtenerConfiguracion(),
+  ]);
   const { porMarca, total } = calcularTotales(movimientos);
 
   return (
@@ -38,6 +42,7 @@ export default async function FinanzasPage({
       totalesPorMarca={Object.fromEntries(porMarca)}
       total={total}
       filtros={filtros}
+      categoriasMovimiento={configuracion.categorias_movimiento}
     />
   );
 }

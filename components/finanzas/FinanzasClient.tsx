@@ -10,7 +10,8 @@ import { MovimientoForm } from "./MovimientoForm";
 import { ExportarCsvButton } from "./ExportarCsvButton";
 import { crearMovimiento, actualizarMovimiento, eliminarMovimiento } from "@/app/(app)/finanzas/actions";
 import { formatARS, formatFecha } from "@/lib/format";
-import { CATEGORIAS, MARCA_LABEL, type MarcaMovimiento, type Movimiento } from "@/lib/types/movimiento";
+import { MARCA_LABEL, type MarcaMovimiento, type Movimiento } from "@/lib/types/movimiento";
+import type { CategoriasMovimiento } from "@/lib/types/config";
 import type { TotalesPorMarca } from "@/lib/data/movimientos";
 
 const MARCAS_ORDEN: MarcaMovimiento[] = ["detailing", "shop", "classmotor", "compartido"];
@@ -46,6 +47,7 @@ export function FinanzasClient({
   totalesPorMarca,
   total,
   filtros,
+  categoriasMovimiento,
 }: {
   movimientos: Movimiento[];
   totalesPorMarca: Record<string, TotalesPorMarca>;
@@ -57,6 +59,7 @@ export function FinanzasClient({
     hasta?: string;
     medio_pago?: string;
   };
+  categoriasMovimiento: CategoriasMovimiento;
 }) {
   const router = useRouter();
   const [alta, setAlta] = useState(false);
@@ -66,7 +69,9 @@ export function FinanzasClient({
 
   const todasLasCategorias = [
     ...new Set(
-      Object.values(CATEGORIAS.ingreso).flat().concat(Object.values(CATEGORIAS.egreso).flat())
+      Object.values(categoriasMovimiento.ingreso)
+        .flat()
+        .concat(Object.values(categoriasMovimiento.egreso).flat())
     ),
   ].sort();
 
@@ -113,7 +118,7 @@ export function FinanzasClient({
             </Button>
             <ExportarCsvButton movimientos={movimientos} nombreArchivo={`finanzas-${desde}_a_${hasta}`} />
           </div>
-          <p className="flex items-center gap-1.5 text-xs text-texto-secundario max-w-xs text-right">
+          <p className="flex items-center gap-1.5 text-xs text-texto-secundario max-w-sm text-right">
             <Info size={12} className="shrink-0" />
             No hay botón de ingreso: los cobros de órdenes, ventas de Shop y autos vendidos se
             cargan solos para evitar anotarlos dos veces.
@@ -126,6 +131,7 @@ export function FinanzasClient({
           <CardHeader title="Nuevo egreso" />
           <MovimientoForm
             tipo="egreso"
+            categoriasMovimiento={categoriasMovimiento}
             accion={crearMovimiento}
             onCancelar={() => setAlta(false)}
             onGuardado={() => setAlta(false)}
@@ -138,7 +144,7 @@ export function FinanzasClient({
         {MARCAS_ORDEN.map((m) => (
           <TotalCard key={m} titulo={MARCA_LABEL[m]} totales={totalesPorMarca[m]} />
         ))}
-        <TotalCard titulo="Total" totales={total} destacado />
+        <TotalCard titulo="Total" totales={total} />
       </div>
 
       {/* Navegación de mes */}
@@ -209,6 +215,7 @@ export function FinanzasClient({
           <MovimientoForm
             tipo={movimientoEditando.tipo}
             movimiento={movimientoEditando}
+            categoriasMovimiento={categoriasMovimiento}
             accion={actualizarMovimiento.bind(null, movimientoEditando.id)}
             onCancelar={() => setEditandoId(null)}
             onGuardado={() => setEditandoId(null)}
@@ -291,16 +298,14 @@ export function FinanzasClient({
 function TotalCard({
   titulo,
   totales,
-  destacado,
 }: {
   titulo: string;
   totales: TotalesPorMarca;
-  destacado?: boolean;
 }) {
   const colorNeto =
     totales.neto > 0 ? "text-verde" : totales.neto < 0 ? "text-rojo" : "text-texto-secundario";
   return (
-    <Card className={destacado ? "border-dorado/40" : undefined}>
+    <Card>
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-texto">{titulo}</span>
         {totales.neto < 0 && (

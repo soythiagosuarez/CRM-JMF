@@ -1,6 +1,7 @@
 import { listarTurnosEnRango } from "@/lib/data/turnos";
 import { listarClientesConVehiculos } from "@/lib/data/clientes";
 import { listarServicios } from "@/lib/data/servicios";
+import { obtenerConfiguracion } from "@/lib/data/config";
 import { CalendarioClient } from "@/components/agenda/CalendarioClient";
 import { rangoMes, rangoSemana, hoyISO } from "@/lib/agenda-dates";
 
@@ -20,11 +21,12 @@ export default async function AgendaPage({
     vista === "mes" ? rangoMes(fecha) : vista === "semana" ? rangoSemana(fecha) : { desde: fecha, hasta: fecha };
 
   const hoy = hoyISO();
-  const [turnos, clientes, servicios, turnosHoy] = await Promise.all([
+  const [turnos, clientes, servicios, turnosHoy, configuracion] = await Promise.all([
     listarTurnosEnRango(desde, hasta),
     listarClientesConVehiculos(),
     listarServicios(),
     hoy >= desde && hoy <= hasta ? Promise.resolve(null) : listarTurnosEnRango(hoy, hoy),
+    obtenerConfiguracion(),
   ]);
 
   const cantidadTurnosHoy = (
@@ -36,6 +38,7 @@ export default async function AgendaPage({
       turnos={turnos}
       clientes={clientes}
       servicios={servicios.filter((s) => s.activo)}
+      horarios={configuracion.horarios}
       vista={vista}
       fecha={fecha}
       cantidadTurnosHoy={cantidadTurnosHoy}

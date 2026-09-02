@@ -17,6 +17,11 @@
 
   --background: var(--jmf-negro);
   --foreground: var(--jmf-blanco);
+
+  /* Tema único siempre oscuro: le avisa al navegador que renderice sus
+     controles nativos (ícono de calendario, flecha de <select>, etc.) en
+     su variante clara-sobre-oscuro, si no quedan negros sobre fondo negro. */
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -96,5 +101,18 @@ input[type="radio"],
 
   .campo:focus-visible {
     border-color: var(--jmf-rojo);
+  }
+
+  /* Flecha de <select> con estilo propio: la nativa queda pegada al
+     borde derecho, así que la reemplazamos por una con el mismo
+     espaciado que el padding izquierdo del texto (0.75rem). */
+  select.campo {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+    padding-right: 2.25rem;
   }
 }
