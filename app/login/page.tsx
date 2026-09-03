@@ -17,7 +17,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-fondo px-4">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center gap-3 mb-8">
-          <Image src="/logo-isotipo.svg" alt="" width={44} height={44} />
+          <Image src="/brands/detailing.png" alt="JMF" width={220} height={147} />
           <div className="text-center">
             <p className="font-display text-lg font-semibold text-texto leading-tight">
               Centro de Operaciones
