@@ -5,6 +5,7 @@ import { MessageCircle, ChevronRight } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { MontoInput } from "@/components/ui/MontoInput";
 import { formatARS, formatFecha } from "@/lib/format";
 import {
   linkWhatsapp,
@@ -230,14 +231,7 @@ function PrecioForm({
         <label htmlFor="precio_total" className="text-sm text-texto-secundario">
           Precio acordado
         </label>
-        <input
-          id="precio_total"
-          name="precio_total"
-          type="number"
-          min="0"
-          defaultValue={precioActual ?? ""}
-          className="campo"
-        />
+        <MontoInput id="precio_total" name="precio_total" defaultValue={precioActual} />
       </div>
       <Button type="submit" variante="secundario" disabled={enviando}>
         {enviando ? "..." : "Guardar"}
@@ -258,7 +252,7 @@ function CobroForm({ ordenId }: { ordenId: string }) {
     <form action={formAction} className="flex flex-col gap-3 border-t border-borde pt-4">
       <p className="text-sm text-texto-secundario">Registrar cobro</p>
       <div className="grid grid-cols-2 gap-2">
-        <input name="monto" type="number" min="0" step="0.01" placeholder="Monto" className="campo" />
+        <MontoInput name="monto" placeholder="Monto" />
         <select
           name="moneda"
           value={moneda}
@@ -287,14 +281,9 @@ function CobroForm({ ordenId }: { ordenId: string }) {
           className="campo"
         />
         {moneda !== "ARS" && (
-          <input
-            name="tipo_cambio"
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder="Tipo de cambio del día"
-            className="campo col-span-2"
-          />
+          <div className="col-span-2">
+            <MontoInput name="tipo_cambio" placeholder="Tipo de cambio del día" />
+          </div>
         )}
       </div>
       {estado.error && <p className="text-xs text-rojo">{estado.error}</p>}

@@ -6,13 +6,28 @@ import type {
   EstadoRecordatorio,
   FrecuenciaTipo,
   FrecuenciaUnidad,
-  MedioRecordatorio,
 } from "@/lib/types/recordatorio";
 
 export async function cambiarEstadoRecordatorio(id: string, estado: EstadoRecordatorio) {
   const supabase = await createClient();
   const { error } = await supabase.from("recordatorios").update({ estado }).eq("id", id);
   if (error) throw new Error(error.message);
+  revalidatePath("/recordatorios");
+  revalidatePath("/");
+}
+
+/** Cierra la alerta del banner de Inicio (§ feedback: es una alerta
+ * dentro del CRM, no un envío por WhatsApp/SMS/Gmail). El recordatorio
+ * sigue "pendiente" y visible en Recordatorios; si tiene frecuencia,
+ * vuelve a aparecer como alerta cuando corresponda. */
+export async function descartarAlerta(id: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("recordatorios")
+    .update({ ultimo_recordado_en: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/");
   revalidatePath("/recordatorios");
 }
 
@@ -26,8 +41,8 @@ export interface EstadoNotaForm {
  * también pueda usar esta sección para su marca en general (grabar
  * contenido, pagar factura de luz, hablarle a un proveedor, etc).
  * Soporta fecha+hora exacta (con auto-completado ese día) y/o una
- * repetición (diario / cada X días / cada X horas o minutos) con un
- * medio de envío semi-automático (WhatsApp, SMS o Gmail).
+ * repetición (diario / cada X días / cada X horas o minutos): el aviso
+ * es una alerta dentro del CRM (banner en Inicio), no un envío externo.
  */
 export async function crearRecordatorioNota(
   _prevState: EstadoNotaForm,
@@ -52,7 +67,6 @@ export async function crearRecordatorioNota(
       (String(formData.get("frecuencia_unidad") ?? "minutos") as FrecuenciaUnidad) || "minutos";
   }
 
-  const medio = (String(formData.get("medio") ?? "").trim() as MedioRecordatorio) || null;
   const auto_completar = Boolean(fecha_proxima) && formData.get("auto_completar") === "on";
 
   const supabase = await createClient();
@@ -64,7 +78,6 @@ export async function crearRecordatorioNota(
     frecuencia_tipo,
     frecuencia_intervalo,
     frecuencia_unidad,
-    medio,
     auto_completar,
     estado: "pendiente",
   });

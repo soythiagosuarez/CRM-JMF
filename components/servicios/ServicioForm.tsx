@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { Button } from "@/components/ui/Button";
+import { MontoInput } from "@/components/ui/MontoInput";
 import type { EstadoServicioForm } from "@/app/(app)/servicios/actions";
 import type { Servicio } from "@/lib/types/servicio";
 
@@ -80,15 +81,7 @@ export function ServicioForm({
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Campo label="Precio referencia" htmlFor="precio_referencia" ayuda="Opcional">
-          <input
-            id="precio_referencia"
-            name="precio_referencia"
-            type="number"
-            min="0"
-            step="1"
-            defaultValue={servicio?.precio_referencia ?? ""}
-            className="campo"
-          />
+          <MontoInput id="precio_referencia" name="precio_referencia" defaultValue={servicio?.precio_referencia} />
         </Campo>
         <Campo
           label="Mantenimiento (meses)"

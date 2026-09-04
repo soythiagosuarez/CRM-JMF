@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { MontoInput } from "@/components/ui/MontoInput";
 import type { EstadoAutoForm } from "@/app/(app)/classmotor/actions";
 import type { AutoClassmotor } from "@/lib/types/classmotor";
 import type { ClienteConVehiculos } from "@/lib/types/cliente";
@@ -149,28 +150,18 @@ export function AutoForm({
           <label htmlFor="precio_base" className="text-sm text-texto-secundario">
             Precio base
           </label>
-          <input
+          <MontoInput
             id="precio_base"
             name="precio_base"
-            type="number"
-            min="0"
             placeholder="Compra, o precio del cliente"
-            defaultValue={auto?.precio_base ?? ""}
-            className="campo"
+            defaultValue={auto?.precio_base}
           />
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="precio_venta" className="text-sm text-texto-secundario">
             Precio de venta
           </label>
-          <input
-            id="precio_venta"
-            name="precio_venta"
-            type="number"
-            min="0"
-            defaultValue={auto?.precio_venta ?? ""}
-            className="campo"
-          />
+          <MontoInput id="precio_venta" name="precio_venta" defaultValue={auto?.precio_venta} />
         </div>
       </div>
 

@@ -5,6 +5,7 @@ import { Pencil, ChevronRight } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { MontoInput } from "@/components/ui/MontoInput";
 import { AutoForm } from "./AutoForm";
 import { formatARS, formatFecha } from "@/lib/format";
 import {
@@ -186,7 +187,7 @@ function CostoExtraForm({ autoId }: { autoId: string }) {
             </option>
           ))}
         </select>
-        <input name="monto" type="number" min="0" placeholder="Monto" required className="campo" />
+        <MontoInput name="monto" placeholder="Monto" required />
       </div>
       {estado.error && <p className="text-xs text-rojo">{estado.error}</p>}
       <Button type="submit" variante="secundario" disabled={enviando} className="self-start">

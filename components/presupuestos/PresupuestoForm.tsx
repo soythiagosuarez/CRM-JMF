@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { crearPresupuesto, type EstadoForm } from "@/app/(app)/presupuestos/actions";
+import { formatearAR, aValorNumerico } from "@/components/ui/MontoInput";
 import type { Servicio } from "@/lib/types/servicio";
 
 const estadoInicial: EstadoForm = {};
@@ -44,7 +45,8 @@ export function PresupuestoForm({
   };
 
   const actualizarFila = (key: number, campo: "nombre" | "precio", valor: string) => {
-    setFilas((f) => f.map((fila) => (fila.key === key ? { ...fila, [campo]: valor } : fila)));
+    const valorFinal = campo === "precio" ? formatearAR(valor) : valor;
+    setFilas((f) => f.map((fila) => (fila.key === key ? { ...fila, [campo]: valorFinal } : fila)));
   };
 
   return (
@@ -80,14 +82,14 @@ export function PresupuestoForm({
               className="campo flex-1"
             />
             <input
-              name="servicio_precio"
-              type="number"
-              min="0"
+              type="text"
+              inputMode="decimal"
               placeholder="Precio"
               value={fila.precio}
               onChange={(e) => actualizarFila(fila.key, "precio", e.target.value)}
               className="campo w-32"
             />
+            <input type="hidden" name="servicio_precio" value={aValorNumerico(fila.precio)} />
             <button
               type="button"
               onClick={() => quitarFila(fila.key)}

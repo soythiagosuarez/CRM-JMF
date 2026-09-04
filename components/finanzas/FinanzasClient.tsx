@@ -90,11 +90,15 @@ export function FinanzasClient({
     router.push(`/finanzas?${params.toString()}`);
   };
 
-  const borrar = (id: string) => {
-    if (!confirm("¿Eliminar este movimiento? No se puede deshacer.")) return;
+  const borrar = (m: Movimiento) => {
+    const mensaje =
+      m.origen === "manual"
+        ? "¿Eliminar este movimiento? No se puede deshacer."
+        : "Este movimiento se generó solo desde una orden/venta/auto. Si lo borrás acá, esa pantalla va a seguir mostrando que se cobró — solo se borra el asiento en Finanzas. ¿Eliminarlo igual?";
+    if (!confirm(mensaje)) return;
     setErrorAccion(null);
     startTransition(async () => {
-      const resultado = await eliminarMovimiento(id);
+      const resultado = await eliminarMovimiento(m.id);
       if (resultado.error) setErrorAccion(resultado.error);
     });
   };
@@ -263,8 +267,7 @@ export function FinanzasClient({
                     {formatARS(m.monto_ars)}
                   </td>
                   <td className="py-2.5 px-2 text-right">
-                    {m.origen === "manual" && (
-                      <div className="flex items-center justify-end gap-3">
+                    <div className="flex items-center justify-end gap-3">
                         <button
                           onClick={() => setEditandoId(m.id)}
                           className="text-texto-secundario hover:text-texto"
@@ -273,7 +276,7 @@ export function FinanzasClient({
                           <Pencil size={14} />
                         </button>
                         <button
-                          onClick={() => borrar(m.id)}
+                          onClick={() => borrar(m)}
                           disabled={isPending}
                           className="text-texto-secundario hover:text-rojo disabled:opacity-50"
                           aria-label="Eliminar movimiento"
@@ -281,7 +284,6 @@ export function FinanzasClient({
                           <Trash2 size={14} />
                         </button>
                       </div>
-                    )}
                   </td>
                 </tr>
               ))}

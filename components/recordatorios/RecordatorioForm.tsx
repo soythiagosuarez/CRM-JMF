@@ -3,8 +3,7 @@
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { crearRecordatorioNota, type EstadoNotaForm } from "@/app/(app)/recordatorios/actions";
-import { MEDIO_LABEL } from "@/lib/types/recordatorio";
-import type { FrecuenciaTipo, MedioRecordatorio } from "@/lib/types/recordatorio";
+import type { FrecuenciaTipo } from "@/lib/types/recordatorio";
 
 const estadoInicial: EstadoNotaForm = {};
 
@@ -17,7 +16,6 @@ export function RecordatorioForm({
 }) {
   const [fecha, setFecha] = useState("");
   const [frecuencia, setFrecuencia] = useState<FrecuenciaTipo | "">("");
-  const [medio, setMedio] = useState<MedioRecordatorio | "">("");
   const [estado, formAction, enviando] = useActionState(
     async (prev: EstadoNotaForm, formData: FormData) => {
       const resultado = await crearRecordatorioNota(prev, formData);
@@ -84,8 +82,8 @@ export function RecordatorioForm({
 
       <div className="rounded-lg border border-borde p-3 flex flex-col gap-3">
         <p className="text-xs text-texto-secundario">
-          Repetición, opcional. La plataforma te lo va a mostrar como pendiente todo este
-          tiempo y te da un botón para mandarlo por el medio que elijas — no se envía solo.
+          Repetición, opcional. Mientras esté pendiente, te va a aparecer como alerta arriba
+          de Inicio cada tanto — la cerrás para confirmar que la viste.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="flex flex-col gap-1.5">
@@ -141,28 +139,6 @@ export function RecordatorioForm({
             </div>
           )}
         </div>
-
-        {frecuencia && (
-          <div className="flex flex-col gap-1.5 max-w-xs">
-            <label htmlFor="medio" className="text-sm text-texto-secundario">
-              Por dónde
-            </label>
-            <select
-              id="medio"
-              name="medio"
-              value={medio}
-              onChange={(e) => setMedio(e.target.value as MedioRecordatorio | "")}
-              className="campo"
-            >
-              <option value="">Elegí un medio</option>
-              {(Object.keys(MEDIO_LABEL) as MedioRecordatorio[]).map((m) => (
-                <option key={m} value={m}>
-                  {MEDIO_LABEL[m]}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
       </div>
 
       {estado.error && (

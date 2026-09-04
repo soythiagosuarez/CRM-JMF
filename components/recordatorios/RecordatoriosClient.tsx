@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState, useTransition } from "react";
-import { MessageCircle, Pencil, Check, X, Plus, Send } from "lucide-react";
+import { MessageCircle, Pencil, Check, X, Plus } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -12,9 +12,8 @@ import {
 } from "@/app/(app)/recordatorios/actions";
 import { RecordatorioForm } from "./RecordatorioForm";
 import { linkWhatsapp, mensajeMantenimiento, mensajeRenovacion } from "@/lib/whatsapp";
-import { linkRecordatorio } from "@/lib/recordatorio-links";
 import { formatFecha } from "@/lib/format";
-import { TIPO_LABEL, ESTADO_LABEL, MEDIO_LABEL, resumenFrecuencia } from "@/lib/types/recordatorio";
+import { TIPO_LABEL, ESTADO_LABEL, resumenFrecuencia } from "@/lib/types/recordatorio";
 import type { EstadoRecordatorio, RecordatorioConDatos, TipoRecordatorio } from "@/lib/types/recordatorio";
 
 const ESTADO_TONO: Record<EstadoRecordatorio, "neutro" | "positivo" | "negativo"> = {
@@ -107,21 +106,10 @@ export function RecordatoriosClient({
                   <button
                     onClick={() => setEditandoId(r.id)}
                     className="text-texto-secundario hover:text-texto"
-                    aria-label="Editar fecha"
+                    aria-label="Editar"
                   >
                     <Pencil size={14} />
                   </button>
-                  {r.tipo === "nota" && r.medio && (
-                    <a
-                      href={linkRecordatorio(r.medio, r.titulo ?? "Recordatorio")}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs text-verde hover:underline"
-                    >
-                      <Send size={14} />
-                      {MEDIO_LABEL[r.medio]}
-                    </a>
-                  )}
                   {r.tipo !== "nota" && r.cliente_telefono && (
                     <a
                       href={linkWhatsapp(

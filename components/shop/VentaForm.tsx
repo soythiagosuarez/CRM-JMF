@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { Button } from "@/components/ui/Button";
+import { MontoInput } from "@/components/ui/MontoInput";
 import { venderProducto, type EstadoVentaForm } from "@/app/(app)/shop/actions";
 import type { Producto } from "@/lib/types/producto";
 
@@ -47,15 +48,11 @@ export function VentaForm({
           <label htmlFor={`precio-${producto.id}`} className="text-xs text-texto-secundario">
             Precio unitario
           </label>
-          <input
+          <MontoInput
             id={`precio-${producto.id}`}
             name="precio_unitario"
-            type="number"
-            min="0"
-            step="0.01"
-            defaultValue={producto.precio_venta ?? ""}
+            defaultValue={producto.precio_venta}
             required
-            className="campo"
           />
         </div>
         <div className="flex flex-col gap-1">

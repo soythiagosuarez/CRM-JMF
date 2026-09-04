@@ -116,3 +116,44 @@ input[type="radio"],
     padding-right: 2.25rem;
   }
 }
+
+/* Tooltip al hacer hover en botones/links de solo ícono (§ feedback:
+   "los íconos no se entienden"). Reutiliza el aria-label que ya tienen
+   para accesibilidad — no hace falta tocar cada botón uno por uno.
+   Los botones con texto visible junto al ícono no llevan aria-label,
+   así que esta regla no les aplica a ellos. */
+button[aria-label],
+a[aria-label] {
+  position: relative;
+}
+
+button[aria-label]::after,
+a[aria-label]::after {
+  content: attr(aria-label);
+  position: absolute;
+  bottom: calc(100% + 0.4rem);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--jmf-panel-2);
+  border: 1px solid var(--jmf-borde);
+  color: var(--jmf-blanco);
+  font-size: 0.7rem;
+  font-weight: 500;
+  line-height: 1.2;
+  padding: 0.3rem 0.55rem;
+  border-radius: 0.375rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+  z-index: 40;
+}
+
+button[aria-label]:hover::after,
+button[aria-label]:focus-visible::after,
+a[aria-label]:hover::after,
+a[aria-label]:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+}

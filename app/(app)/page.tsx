@@ -11,7 +11,9 @@ import {
   mensajeRenovacion,
 } from "@/lib/whatsapp";
 import { obtenerDashboard } from "@/lib/data/dashboard";
+import { AlertaRecordatorios } from "@/components/inicio/AlertaRecordatorios";
 import { FLAG_LABEL } from "@/lib/types/orden";
+import { TIPO_LABEL } from "@/lib/types/recordatorio";
 import { MARCA_LABEL, type MarcaMovimiento } from "@/lib/types/movimiento";
 
 const MARCAS_ORDEN: MarcaMovimiento[] = ["detailing", "shop", "classmotor", "compartido"];
@@ -28,6 +30,8 @@ export default async function InicioPage() {
           Resumen general de Detailing, Shop y Classmotor.
         </p>
       </div>
+
+      <AlertaRecordatorios alertas={dash.alertasRecordatorios} />
 
       {/* KPIs */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -227,7 +231,7 @@ export default async function InicioPage() {
       <Card>
         <CardHeader
           title="Próximos recordatorios"
-          subtitle="Mantenimientos y renovaciones que se vienen"
+          subtitle="Mantenimientos, renovaciones y notas pendientes"
           action={
             <Link href="/recordatorios" className="text-sm text-rojo hover:underline">
               Ver todos
@@ -244,17 +248,24 @@ export default async function InicioPage() {
               <div key={r.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
                 <div>
                   <p className="text-sm text-texto">
-                    {r.cliente_nombre}{" "}
-                    <span className="text-texto-secundario">
-                      · {r.vehiculo_descripcion || "Sin vehículo"}
-                    </span>
+                    {r.tipo === "nota" ? (
+                      r.titulo
+                    ) : (
+                      <>
+                        {r.cliente_nombre}{" "}
+                        <span className="text-texto-secundario">
+                          · {r.vehiculo_descripcion || "Sin vehículo"}
+                        </span>
+                      </>
+                    )}
                   </p>
                   <p className="text-xs text-texto-secundario mt-0.5">
-                    {r.tratamiento} · {r.tipo === "mantenimiento" ? "Mantenimiento" : "Renovación"} ·{" "}
+                    {r.tipo !== "nota" && `${r.tratamiento} · `}
+                    {TIPO_LABEL[r.tipo]} ·{" "}
                     {r.fecha_proxima ? formatFecha(r.fecha_proxima) : "Sin fecha"}
                   </p>
                 </div>
-                {r.cliente_telefono && (
+                {r.tipo !== "nota" && r.cliente_telefono && (
                   <a
                     href={linkWhatsapp(
                       r.cliente_telefono,

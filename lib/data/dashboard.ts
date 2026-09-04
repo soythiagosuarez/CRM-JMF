@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { listarMovimientos, calcularTotales } from "@/lib/data/movimientos";
 import { listarOrdenes } from "@/lib/data/ordenes";
 import { listarRecordatorios } from "@/lib/data/recordatorios";
+import { debeAlertar } from "@/lib/types/recordatorio";
 
 function rangoMesActual() {
   const hoy = new Date();
@@ -61,9 +62,11 @@ export async function obtenerDashboard() {
   ).length;
 
   const recordatoriosProximos = recordatorios
-    .filter((r) => r.estado === "pendiente" && r.tipo !== "nota")
+    .filter((r) => r.estado === "pendiente")
     .sort((a, b) => (a.fecha_proxima ?? "").localeCompare(b.fecha_proxima ?? ""))
     .slice(0, 5);
+
+  const alertasRecordatorios = recordatorios.filter((r) => debeAlertar(r));
 
   return {
     autosEnTallerCantidad: autosEnTaller.length,
@@ -81,5 +84,6 @@ export async function obtenerDashboard() {
       cantidad,
     })),
     recordatoriosProximos,
+    alertasRecordatorios,
   };
 }

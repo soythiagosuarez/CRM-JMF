@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { MontoInput } from "@/components/ui/MontoInput";
 import type { EstadoMovimientoForm } from "@/app/(app)/finanzas/actions";
 import { MARCA_LABEL, type MarcaMovimiento, type MonedaMovimiento, type Movimiento, type TipoMovimiento } from "@/lib/types/movimiento";
 import type { CategoriasMovimiento } from "@/lib/types/config";
@@ -45,6 +46,12 @@ export function MovimientoForm({
           {tipo === "ingreso"
             ? "Solo para plata suelta: los cobros de órdenes, ventas de Shop y autos vendidos se cargan solos."
             : "Egreso manual (alquiler, insumos, sueldos, etc.)."}
+        </p>
+      )}
+      {movimiento && movimiento.origen !== "manual" && (
+        <p className="text-sm text-dorado">
+          Este movimiento se generó solo desde una orden/venta/auto. Lo que corrijas acá solo
+          actualiza este asiento en Finanzas — la pantalla de origen no cambia.
         </p>
       )}
 
@@ -95,16 +102,7 @@ export function MovimientoForm({
           <label htmlFor="monto" className="text-sm text-texto-secundario">
             Monto
           </label>
-          <input
-            id="monto"
-            name="monto"
-            type="number"
-            min="0"
-            step="0.01"
-            required
-            defaultValue={movimiento?.monto ?? ""}
-            className="campo"
-          />
+          <MontoInput id="monto" name="monto" required defaultValue={movimiento?.monto} />
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -130,15 +128,11 @@ export function MovimientoForm({
             <label htmlFor="tipo_cambio" className="text-sm text-texto-secundario">
               Tipo de cambio del día
             </label>
-            <input
+            <MontoInput
               id="tipo_cambio"
               name="tipo_cambio"
-              type="number"
-              min="0"
-              step="0.01"
               required
-              defaultValue={movimiento?.tipo_cambio ?? ""}
-              className="campo"
+              defaultValue={movimiento?.tipo_cambio}
             />
           </div>
         )}

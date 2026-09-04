@@ -5,6 +5,7 @@ import { Plus, Pencil, Trash2, Phone, Mail, Wrench } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { MontoInput } from "@/components/ui/MontoInput";
 import { ClienteForm } from "./ClienteForm";
 import { VehiculoForm } from "./VehiculoForm";
 import {
@@ -311,7 +312,7 @@ function ServicioHistoricoForm({
           ))}
         </select>
         <input name="fecha" type="date" required className="campo" />
-        <input name="precio_total" type="number" min="0" placeholder="Precio (opcional)" className="campo" />
+        <MontoInput name="precio_total" placeholder="Precio (opcional)" />
       </div>
       {estado.error && <p className="text-xs text-rojo">{estado.error}</p>}
       <Button type="submit" variante="secundario" disabled={enviando} className="self-start">

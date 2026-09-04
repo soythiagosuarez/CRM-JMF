@@ -77,8 +77,13 @@ export async function crearMovimiento(
   return { ok: true };
 }
 
-/** Solo se pueden editar movimientos manuales, por la misma razón que
- * eliminarMovimiento: no romper la trazabilidad con su origen. */
+/**
+ * Editar movimiento — se permite en cualquier origen (manual o
+ * automático) para poder corregir errores de tipeo (ej. un cobro de
+ * orden cargado con el monto mal). Ojo: esto corrige el asiento en
+ * Finanzas pero no actualiza el monto que muestra la Orden/Venta/Auto
+ * de origen — ver aviso en el formulario.
+ */
 export async function actualizarMovimiento(
   id: string,
   _prevState: EstadoMovimientoForm,
@@ -88,16 +93,6 @@ export async function actualizarMovimiento(
   if ("error" in input) return { error: input.error };
 
   const supabase = await createClient();
-  const { data: mov, error: errorGet } = await supabase
-    .from("movimientos")
-    .select("origen")
-    .eq("id", id)
-    .single();
-  if (errorGet) return { error: errorGet.message };
-  if (mov.origen !== "manual") {
-    return { error: "Este movimiento nació de una orden/venta y no se puede editar acá." };
-  }
-
   const { error } = await supabase.from("movimientos").update(input).eq("id", id);
   if (error) return { error: "No se pudo guardar: " + error.message };
 
@@ -105,20 +100,11 @@ export async function actualizarMovimiento(
   return { ok: true };
 }
 
-/** Solo se pueden borrar movimientos manuales; los automáticos quedan
- * atados a su orden/venta de origen para no romper la trazabilidad. */
+/** Borrar movimiento — cualquier origen. Si es automático, la Orden/
+ * Venta/Auto de origen sigue mostrando que se cobró/vendió (no se
+ * revierte desde acá); el aviso está en la confirmación del botón. */
 export async function eliminarMovimiento(id: string): Promise<{ error?: string }> {
   const supabase = await createClient();
-  const { data: mov, error: errorGet } = await supabase
-    .from("movimientos")
-    .select("origen")
-    .eq("id", id)
-    .single();
-  if (errorGet) return { error: errorGet.message };
-  if (mov.origen !== "manual") {
-    return { error: "Este movimiento nació de una orden/venta y no se puede borrar acá." };
-  }
-
   const { error } = await supabase.from("movimientos").delete().eq("id", id);
   if (error) return { error: error.message };
 
