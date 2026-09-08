@@ -14,7 +14,7 @@ const tonoColor: Record<Tono, string> = {
 
 interface KpiProps {
   etiqueta: string;
-  valor: string;
+  valor: ReactNode;
   detalle?: string;
   tono?: Tono;
   icono?: ReactNode;

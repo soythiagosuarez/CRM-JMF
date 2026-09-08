@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/Button";
 import { ProductoForm } from "./ProductoForm";
 import { VentaForm } from "./VentaForm";
 import { crearProducto, actualizarProducto, eliminarProducto } from "@/app/(app)/shop/actions";
-import { formatARS } from "@/lib/format";
+import { Monto } from "@/components/ui/Monto";
+import { ToggleVisibilidad } from "@/components/ui/ToggleVisibilidad";
 import type { Producto } from "@/lib/types/producto";
 
 export function ProductosClient({ productos }: { productos: Producto[] }) {
@@ -42,7 +43,8 @@ export function ProductosClient({ productos }: { productos: Producto[] }) {
             </p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          <ToggleVisibilidad />
           {!creando && (
             <Button onClick={() => setCreando(true)}>
               <Plus size={16} />
@@ -133,8 +135,8 @@ export function ProductosClient({ productos }: { productos: Producto[] }) {
                 </div>
 
                 <div className="flex justify-between text-xs text-texto-secundario mt-3">
-                  <span>Venta: {p.precio_venta ? formatARS(p.precio_venta) : "—"}</span>
-                  <span>Costo: {p.precio_costo ? formatARS(p.precio_costo) : "—"}</span>
+                  <span>Venta: {p.precio_venta ? <Monto valor={p.precio_venta} /> : "—"}</span>
+                  <span>Costo: {p.precio_costo ? <Monto valor={p.precio_costo} /> : "—"}</span>
                 </div>
 
                 {vendiendoId === p.id ? (

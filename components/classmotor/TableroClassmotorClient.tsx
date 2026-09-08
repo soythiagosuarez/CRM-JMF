@@ -5,6 +5,8 @@ import Image from "next/image";
 import { Plus } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { Monto } from "@/components/ui/Monto";
+import { ToggleVisibilidad } from "@/components/ui/ToggleVisibilidad";
 import { AutoForm } from "./AutoForm";
 import { AutoModal } from "./AutoModal";
 import { crearAutoClassmotor, moverEstadoClassmotor } from "@/app/(app)/classmotor/actions";
@@ -79,12 +81,15 @@ export function TableroClassmotorClient({
             </p>
           </div>
         </div>
-        {!creando && (
-          <Button onClick={() => setCreando(true)}>
-            <Plus size={16} />
-            Nuevo auto
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          <ToggleVisibilidad />
+          {!creando && (
+            <Button onClick={() => setCreando(true)}>
+              <Plus size={16} />
+              Nuevo auto
+            </Button>
+          )}
+        </div>
       </div>
 
       {creando && (
@@ -163,7 +168,7 @@ export function TableroClassmotorClient({
                                 : "text-texto-secundario"
                           }`}
                         >
-                          Ganancia {formatARS(ganancia)}
+                          Ganancia <Monto valor={ganancia} />
                         </p>
                       </Card>
                     );

@@ -3,7 +3,9 @@ import { MessageCircle, AlertTriangle } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Kpi } from "@/components/ui/Kpi";
 import { Badge } from "@/components/ui/Badge";
-import { formatARS, formatFecha } from "@/lib/format";
+import { Monto } from "@/components/ui/Monto";
+import { ToggleVisibilidad } from "@/components/ui/ToggleVisibilidad";
+import { formatFecha } from "@/lib/format";
 import {
   linkWhatsapp,
   mensajeCambioFase,
@@ -24,11 +26,14 @@ export default async function InicioPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-display text-2xl font-semibold text-texto">Inicio</h1>
-        <p className="text-sm text-texto-secundario mt-1">
-          Resumen general de Detailing, Shop y Classmotor.
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-semibold text-texto">Inicio</h1>
+          <p className="text-sm text-texto-secundario mt-1">
+            Resumen general de Detailing, Shop y Classmotor.
+          </p>
+        </div>
+        <ToggleVisibilidad />
       </div>
 
       <AlertaRecordatorios alertas={dash.alertasRecordatorios} />
@@ -40,11 +45,11 @@ export default async function InicioPage() {
           valor={String(dash.autosEnTallerCantidad)}
           enlace={{ href: "/autos", texto: "Gestionar autos" }}
         />
-        <Kpi etiqueta="Ingresos del mes" valor={formatARS(dash.ingresosMes)} tono="positivo" />
-        <Kpi etiqueta="Egresos del mes" valor={formatARS(dash.egresosMes)} tono="negativo" />
+        <Kpi etiqueta="Ingresos del mes" valor={<Monto valor={dash.ingresosMes} />} tono="positivo" />
+        <Kpi etiqueta="Egresos del mes" valor={<Monto valor={dash.egresosMes} />} tono="negativo" />
         <Kpi
           etiqueta="Neto del mes"
-          valor={formatARS(dash.netoMes)}
+          valor={<Monto valor={dash.netoMes} />}
           tono={dash.netoMes >= 0 ? "positivo" : "negativo"}
           detalle={dash.netoMes >= 0 ? "El mes está en verde" : "El mes está en rojo"}
         />
@@ -85,11 +90,11 @@ export default async function InicioPage() {
                       enRojo ? "text-rojo" : "text-verde"
                     }`}
                   >
-                    {formatARS(t.neto)}
+                    <Monto valor={t.neto} />
                   </span>
                   <div className="flex justify-between text-xs text-texto-secundario">
-                    <span>Ingresos {formatARS(t.ingresos)}</span>
-                    <span>Egresos {formatARS(t.egresos)}</span>
+                    <span>Ingresos <Monto valor={t.ingresos} /></span>
+                    <span>Egresos <Monto valor={t.egresos} /></span>
                   </div>
                 </div>
               );

@@ -4,8 +4,10 @@ import { ChevronLeft } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ExportarCsvButton } from "@/components/finanzas/ExportarCsvButton";
+import { Monto } from "@/components/ui/Monto";
+import { ToggleVisibilidad } from "@/components/ui/ToggleVisibilidad";
 import { obtenerReporteMarca } from "@/lib/data/reportes";
-import { formatARS, formatFecha } from "@/lib/format";
+import { formatFecha } from "@/lib/format";
 import { MARCA_LABEL, type MarcaMovimiento } from "@/lib/types/movimiento";
 
 const MARCAS_VALIDAS: MarcaMovimiento[] = ["detailing", "shop", "classmotor", "compartido"];
@@ -53,23 +55,26 @@ export default async function ReporteMarcaPage({
             Desglose de {etiquetaMes}.
           </p>
         </div>
-        <ExportarCsvButton
-          movimientos={reporte.movimientos}
-          nombreArchivo={`movimientos-${marca}-${mesActual}`}
-        />
+        <div className="flex items-center gap-2">
+          <ExportarCsvButton
+            movimientos={reporte.movimientos}
+            nombreArchivo={`movimientos-${marca}-${mesActual}`}
+          />
+          <ToggleVisibilidad />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <span className="text-sm text-texto-secundario">Ingresos</span>
           <p className="font-display text-2xl font-semibold text-verde mt-1">
-            {formatARS(reporte.ingresos)}
+            <Monto valor={reporte.ingresos} />
           </p>
         </Card>
         <Card>
           <span className="text-sm text-texto-secundario">Egresos</span>
           <p className="font-display text-2xl font-semibold text-rojo mt-1">
-            {formatARS(reporte.egresos)}
+            <Monto valor={reporte.egresos} />
           </p>
         </Card>
         <Card>
@@ -79,7 +84,7 @@ export default async function ReporteMarcaPage({
               enRojo ? "text-rojo" : reporte.neto > 0 ? "text-verde" : "text-texto-secundario"
             }`}
           >
-            {formatARS(reporte.neto)}
+            <Monto valor={reporte.neto} />
           </p>
         </Card>
       </div>
@@ -118,7 +123,7 @@ export default async function ReporteMarcaPage({
                       </Badge>
                     </td>
                     <td className="py-2 text-right text-texto whitespace-nowrap">
-                      {formatARS(m.monto_ars)}
+                      <Monto valor={m.monto_ars} />
                     </td>
                   </tr>
                 ))}

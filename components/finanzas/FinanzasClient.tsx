@@ -7,10 +7,12 @@ import { Card, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
+import { Monto } from "@/components/ui/Monto";
+import { ToggleVisibilidad } from "@/components/ui/ToggleVisibilidad";
 import { MovimientoForm } from "./MovimientoForm";
 import { ExportarCsvButton } from "./ExportarCsvButton";
 import { crearMovimiento, actualizarMovimiento, eliminarMovimiento } from "@/app/(app)/finanzas/actions";
-import { formatARS, formatFecha } from "@/lib/format";
+import { formatFecha } from "@/lib/format";
 import { MARCA_LABEL, type MarcaMovimiento, type Movimiento } from "@/lib/types/movimiento";
 import type { CategoriasMovimiento } from "@/lib/types/config";
 import type { TotalesPorMarca } from "@/lib/data/movimientos";
@@ -125,6 +127,7 @@ export function FinanzasClient({
             No hay botón de ingreso: los cobros de órdenes, ventas de Shop y autos vendidos se
             cargan solos para evitar anotarlos dos veces.
           </InfoTooltip>
+          <ToggleVisibilidad />
         </div>
       </div>
 
@@ -264,7 +267,7 @@ export function FinanzasClient({
                     }`}
                   >
                     {m.tipo === "egreso" ? "-" : ""}
-                    {formatARS(m.monto_ars)}
+                    <Monto valor={m.monto_ars} />
                   </td>
                   <td className="py-2.5 px-2 text-right">
                     <div className="flex items-center justify-end gap-3">
@@ -318,17 +321,17 @@ function TotalCard({
 
       <p className="text-xs text-texto-secundario mt-3">Neto</p>
       <span className={`font-display text-xl font-semibold ${colorNeto}`}>
-        {formatARS(totales.neto)}
+        <Monto valor={totales.neto} />
       </span>
 
       <div className="flex justify-between gap-3 mt-3">
         <div>
           <p className="text-xs text-texto-secundario">Ingresos</p>
-          <span className="text-sm text-texto-secundario">{formatARS(totales.ingresos)}</span>
+          <span className="text-sm text-texto-secundario"><Monto valor={totales.ingresos} /></span>
         </div>
         <div className="text-right">
           <p className="text-xs text-texto-secundario">Egresos</p>
-          <span className="text-sm text-texto-secundario">{formatARS(totales.egresos)}</span>
+          <span className="text-sm text-texto-secundario"><Monto valor={totales.egresos} /></span>
         </div>
       </div>
     </Card>

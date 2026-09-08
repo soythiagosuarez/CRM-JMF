@@ -3,8 +3,9 @@ import { ChevronLeft, ChevronRight, Trophy } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ExportarCsvButton } from "@/components/finanzas/ExportarCsvButton";
+import { Monto } from "@/components/ui/Monto";
+import { ToggleVisibilidad } from "@/components/ui/ToggleVisibilidad";
 import { obtenerReporteMes } from "@/lib/data/reportes";
-import { formatARS } from "@/lib/format";
 import { MARCA_LABEL, type MarcaMovimiento } from "@/lib/types/movimiento";
 
 const MARCAS_ORDEN: MarcaMovimiento[] = ["detailing", "shop", "classmotor", "compartido"];
@@ -42,10 +43,13 @@ export default async function ReportesPage({
             Resumen del mes: facturación, marca y servicio más rentable.
           </p>
         </div>
-        <ExportarCsvButton
-          movimientos={reporte.movimientos}
-          nombreArchivo={`movimientos-${mesActual}`}
-        />
+        <div className="flex items-center gap-2">
+          <ExportarCsvButton
+            movimientos={reporte.movimientos}
+            nombreArchivo={`movimientos-${mesActual}`}
+          />
+          <ToggleVisibilidad />
+        </div>
       </div>
 
       <div className="flex items-center gap-2">
@@ -70,13 +74,13 @@ export default async function ReportesPage({
         <Card>
           <span className="text-sm text-texto-secundario">Facturación</span>
           <p className="font-display text-2xl font-semibold text-verde mt-1">
-            {formatARS(reporte.facturacion)}
+            <Monto valor={reporte.facturacion} />
           </p>
         </Card>
         <Card>
           <span className="text-sm text-texto-secundario">Egresos</span>
           <p className="font-display text-2xl font-semibold text-rojo mt-1">
-            {formatARS(reporte.egresos)}
+            <Monto valor={reporte.egresos} />
           </p>
         </Card>
         <Card>
@@ -86,7 +90,7 @@ export default async function ReportesPage({
               reporte.neto > 0 ? "text-verde" : reporte.neto < 0 ? "text-rojo" : "text-texto-secundario"
             }`}
           >
-            {formatARS(reporte.neto)}
+            <Monto valor={reporte.neto} />
           </p>
         </Card>
       </div>
@@ -102,7 +106,7 @@ export default async function ReportesPage({
                   {reporte.marcaMasRentable.marca}
                 </p>
                 <p className="text-xs text-texto-secundario">
-                  {formatARS(reporte.marcaMasRentable.neto)} de neto
+                  <Monto valor={reporte.marcaMasRentable.neto} /> de neto
                 </p>
               </>
             ) : (
@@ -120,7 +124,7 @@ export default async function ReportesPage({
                   {reporte.servicioMasRentable.servicio}
                 </p>
                 <p className="text-xs text-texto-secundario">
-                  {formatARS(reporte.servicioMasRentable.monto)} facturados
+                  <Monto valor={reporte.servicioMasRentable.monto} /> facturados
                 </p>
               </>
             ) : (
@@ -151,9 +155,11 @@ export default async function ReportesPage({
                     <td className="py-3 pr-3">
                       <div className="flex items-center gap-3 flex-wrap">
                         <span className="text-xs text-texto-secundario">
-                          +{formatARS(t.ingresos)} / -{formatARS(t.egresos)}
+                          +<Monto valor={t.ingresos} /> / -<Monto valor={t.egresos} />
                         </span>
-                        <Badge tono={enRojo ? "negativo" : "positivo"}>{formatARS(t.neto)}</Badge>
+                        <Badge tono={enRojo ? "negativo" : "positivo"}>
+                          <Monto valor={t.neto} />
+                        </Badge>
                       </div>
                     </td>
                     <td className="py-3 text-right">

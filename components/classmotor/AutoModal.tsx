@@ -6,6 +6,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { MontoInput } from "@/components/ui/MontoInput";
+import { Monto } from "@/components/ui/Monto";
 import { AutoForm } from "./AutoForm";
 import { formatARS, formatFecha } from "@/lib/format";
 import {
@@ -113,11 +114,11 @@ export function AutoModal({
         <div className="grid grid-cols-2 gap-3 rounded-lg border border-borde bg-panel-2 p-3">
           <div>
             <p className="text-xs text-texto-secundario">Precio base</p>
-            <p className="text-sm text-texto">{auto.precio_base ? formatARS(auto.precio_base) : "—"}</p>
+            <p className="text-sm text-texto">{auto.precio_base ? <Monto valor={auto.precio_base} /> : "—"}</p>
           </div>
           <div>
             <p className="text-xs text-texto-secundario">Precio de venta</p>
-            <p className="text-sm text-texto">{auto.precio_venta ? formatARS(auto.precio_venta) : "—"}</p>
+            <p className="text-sm text-texto">{auto.precio_venta ? <Monto valor={auto.precio_venta} /> : "—"}</p>
           </div>
           <div className="col-span-2 pt-2 border-t border-borde">
             <p className="text-xs text-texto-secundario">
@@ -128,7 +129,7 @@ export function AutoModal({
                 ganancia > 0 ? "text-verde" : ganancia < 0 ? "text-rojo" : "text-texto-secundario"
               }`}
             >
-              {formatARS(ganancia)}
+              <Monto valor={ganancia} />
             </p>
           </div>
         </div>
@@ -140,7 +141,7 @@ export function AutoModal({
               {auto.costos_extra.map((c, i) => (
                 <div key={i} className="flex justify-between text-sm">
                   <span className="text-texto-secundario">{c.concepto}</span>
-                  <span className="text-texto">{formatARS(c.monto)}</span>
+                  <span className="text-texto"><Monto valor={c.monto} /></span>
                 </div>
               ))}
             </div>

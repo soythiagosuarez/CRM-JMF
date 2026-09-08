@@ -6,7 +6,8 @@ import { Modal } from "@/components/ui/Modal";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { MontoInput } from "@/components/ui/MontoInput";
-import { formatARS, formatFecha } from "@/lib/format";
+import { Monto } from "@/components/ui/Monto";
+import { formatFecha } from "@/lib/format";
 import {
   linkWhatsapp,
   mensajeCambioFase,
@@ -138,7 +139,7 @@ export function OrdenModal({
         {/* Cobro */}
         {orden.estado_pago === "cobrado" ? (
           <div className="rounded-lg border border-verde/30 bg-verde/10 p-3 text-sm text-verde">
-            Cobrado: {formatARS(orden.monto_ars ?? 0)}
+            Cobrado: <Monto valor={orden.monto_ars ?? 0} />
             {orden.medio_pago && ` · ${orden.medio_pago.replace(/_/g, " ")}`}
             {orden.fecha_cobro && ` · ${formatFecha(orden.fecha_cobro)}`}
           </div>
