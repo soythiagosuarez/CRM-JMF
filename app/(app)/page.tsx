@@ -14,6 +14,8 @@ import {
 } from "@/lib/whatsapp";
 import { obtenerDashboard } from "@/lib/data/dashboard";
 import { AlertaRecordatorios } from "@/components/inicio/AlertaRecordatorios";
+import { AlertaReservas } from "@/components/inicio/AlertaReservas";
+import { AlertaFidelizacion } from "@/components/inicio/AlertaFidelizacion";
 import { FLAG_LABEL } from "@/lib/types/orden";
 import { TIPO_LABEL } from "@/lib/types/recordatorio";
 import { MARCA_LABEL, type MarcaMovimiento } from "@/lib/types/movimiento";
@@ -36,7 +38,9 @@ export default async function InicioPage() {
         <ToggleVisibilidad />
       </div>
 
+      <AlertaReservas reservas={dash.reservasNuevas} />
       <AlertaRecordatorios alertas={dash.alertasRecordatorios} />
+      <AlertaFidelizacion alertas={dash.alertasPremios} />
 
       {/* KPIs */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

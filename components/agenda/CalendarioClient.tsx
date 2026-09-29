@@ -34,15 +34,27 @@ type Vista = "mes" | "semana" | "dia";
 
 const CHIP_TONO: Record<TurnoConDatos["estado"], string> = {
   agendado: "bg-panel-2 text-texto border-borde",
+  a_confirmar: "bg-dorado/10 text-dorado border-dorado/40 border-dashed",
   ingresado: "bg-verde/10 text-verde border-verde/30",
   cancelado: "bg-rojo/10 text-rojo/70 border-rojo/20 line-through opacity-60",
+  no_vino: "bg-panel-2 text-texto-secundario border-borde line-through opacity-60",
 };
+
+/** Marca de los turnos que entraron por la agenda online (respuesta 8.1). */
+function MarcaOnline() {
+  return (
+    <span className="mr-1 inline-block rounded bg-rojo px-1 text-[9px] font-semibold uppercase leading-4 tracking-wide text-white align-middle">
+      Online
+    </span>
+  );
+}
 
 export function CalendarioClient({
   turnos,
   clientes,
   servicios,
   horarios,
+  direccion,
   vista,
   fecha,
   cantidadTurnosHoy,
@@ -51,6 +63,7 @@ export function CalendarioClient({
   clientes: ClienteConVehiculos[];
   servicios: Servicio[];
   horarios: Horarios;
+  direccion: string;
   vista: Vista;
   fecha: string;
   cantidadTurnosHoy: number;
@@ -114,7 +127,8 @@ export function CalendarioClient({
         <div>
           <h1 className="font-display text-2xl font-semibold text-texto">Agenda</h1>
           <p className="text-sm text-texto-secundario mt-1">
-            Turnos de servicio confirmados. {resumenHorarios(horarios)}.
+            Turnos de servicio. {resumenHorarios(horarios)}. Los que llegan por la agenda online
+            llevan la etiqueta <MarcaOnline />y los punteados quedan a confirmar.
           </p>
         </div>
         <div className="flex gap-2">
@@ -210,7 +224,7 @@ export function CalendarioClient({
       </div>
 
       {turnoAbierto && (
-        <TurnoPopup turno={turnoAbierto} onCerrar={() => setTurnoAbierto(null)} />
+        <TurnoPopup turno={turnoAbierto} direccion={direccion} onCerrar={() => setTurnoAbierto(null)} />
       )}
 
       {fechaNuevoTurno && (
@@ -375,6 +389,7 @@ function ChipCompacto({ turno, onClick }: { turno: TurnoConDatos; onClick: () =>
       onClick={onClick}
       className={`w-full truncate rounded border px-1.5 py-0.5 text-left text-xs ${CHIP_TONO[turno.estado]}`}
     >
+      {turno.origen === "online" && <MarcaOnline />}
       {turno.hora.slice(0, 5)} {turno.cliente_nombre}
     </button>
   );
@@ -387,7 +402,9 @@ function ChipDetallado({ turno, onClick }: { turno: TurnoConDatos; onClick: () =
       className={`w-full rounded border px-2 py-1.5 text-left text-xs ${CHIP_TONO[turno.estado]}`}
     >
       <p className="font-medium">
-        {turno.hora.slice(0, 5)} · {turno.cliente_nombre}
+        {turno.origen === "online" && <MarcaOnline />}
+        {turno.hora.slice(0, 5)}
+        {turno.hora_hasta ? `–${turno.hora_hasta.slice(0, 5)}` : ""} · {turno.cliente_nombre}
       </p>
       <p className="truncate opacity-80">
         {turno.vehiculo_descripcion} · {turno.servicios_nombres.join(", ")}

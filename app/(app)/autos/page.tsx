@@ -16,7 +16,7 @@ export default async function AutosPage() {
     obtenerConfiguracion(),
   ]);
 
-  const esperandoIngreso = turnosHoy.filter((t) => t.estado === "agendado");
+  const esperandoIngreso = turnosHoy.filter((t) => t.estado === "agendado" || t.estado === "a_confirmar");
 
   return (
     <TableroClient
@@ -25,6 +25,7 @@ export default async function AutosPage() {
       clientes={clientes}
       servicios={servicios.filter((s) => s.activo)}
       horarios={configuracion.horarios}
+      direccion={configuracion.reservas.direccion}
     />
   );
 }

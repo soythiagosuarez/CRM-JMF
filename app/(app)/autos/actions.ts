@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { sumarPuntosPorOrden } from "@/lib/fidelizacion/puntos";
 import type { Entrega, EstadoOrden, FlagOrden, MedioPago, MonedaPago } from "@/lib/types/orden";
 
 async function obtenerFasesServicio(servicioId: string): Promise<string[]> {
@@ -205,8 +206,13 @@ export async function marcarCobrado(
     return { error: "La orden se marcó cobrada pero falló el movimiento: " + errorMovimiento.message };
   }
 
+  // Fidelización: los puntos se ganan al cobrar (respuesta 9.1).
+  await sumarPuntosPorOrden(supabase, ordenId);
+
   revalidatePath("/autos");
   revalidatePath("/finanzas");
+  revalidatePath("/clientes");
+  revalidatePath("/");
   return { ok: true };
 }
 

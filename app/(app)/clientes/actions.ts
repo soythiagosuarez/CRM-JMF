@@ -4,6 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { ClienteInput, OrigenCliente, VehiculoInput } from "@/lib/types/cliente";
+import type { TamanoVehiculo } from "@/lib/types/reserva";
+
+const TAMANOS_VALIDOS: TamanoVehiculo[] = ["chico", "mediano", "suv", "pickup", "grande"];
 
 export interface EstadoFormulario {
   error?: string;
@@ -97,6 +100,8 @@ function leerVehiculoInput(formData: FormData): VehiculoInput | { error: string 
 
   const anioRaw = String(formData.get("anio") ?? "").trim();
   const anio = anioRaw ? Number(anioRaw) : null;
+  const tamano = String(formData.get("tamano") ?? "");
+  const condicion = String(formData.get("condicion") ?? "");
 
   return {
     marca: marca || null,
@@ -105,6 +110,8 @@ function leerVehiculoInput(formData: FormData): VehiculoInput | { error: string 
     patente: String(formData.get("patente") ?? "").trim().toUpperCase() || null,
     color: String(formData.get("color") ?? "").trim() || null,
     detalles: String(formData.get("detalles") ?? "").trim() || null,
+    tamano: TAMANOS_VALIDOS.includes(tamano as TamanoVehiculo) ? (tamano as TamanoVehiculo) : null,
+    condicion: condicion === "0km" || condicion === "usado" ? condicion : null,
   };
 }
 

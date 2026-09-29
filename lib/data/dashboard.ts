@@ -2,7 +2,12 @@ import { createClient } from "@/lib/supabase/server";
 import { listarMovimientos, calcularTotales } from "@/lib/data/movimientos";
 import { listarOrdenes } from "@/lib/data/ordenes";
 import { listarRecordatorios } from "@/lib/data/recordatorios";
-import { debeAlertar } from "@/lib/types/recordatorio";
+import { listarReservasSinRevisar } from "@/lib/data/turnos";
+import { obtenerResumenesFidelizacion } from "@/lib/data/fidelizacion";
+import { obtenerClientesPorIds } from "@/lib/data/clientes";
+import { debeAlertar } from "@/lib/fidelizacion/reglas";
+import type { AlertaPremio } from "@/lib/types/fidelizacion";
+import { debeAlertar as debeAlertarRecordatorio } from "@/lib/types/recordatorio";
 
 function rangoMesActual() {
   const hoy = new Date();
@@ -26,11 +31,29 @@ export async function obtenerDashboard() {
   const { desde: desdeMes, hasta: hastaMes } = rangoMesActual();
   const { desde: desdeSemana, hasta: hastaSemana } = rangoSemanaActual();
 
-  const [movimientosMes, ordenes, recordatorios] = await Promise.all([
+  const [movimientosMes, ordenes, recordatorios, reservasNuevas, resumenes] = await Promise.all([
     listarMovimientos({ desde: desdeMes, hasta: hastaMes }),
     listarOrdenes(),
     listarRecordatorios(),
+    listarReservasSinRevisar(),
+    obtenerResumenesFidelizacion(),
   ]);
+
+  // Fidelización: clientes a los que hay que avisarles que tienen premio.
+  const conPremio = [...resumenes.entries()].filter(([, r]) => debeAlertar(r.estado_aviso));
+  const clientesConPremio = new Map(
+    (await obtenerClientesPorIds(conPremio.map(([id]) => id))).map((c) => [c.id, c])
+  );
+  const alertasPremios: AlertaPremio[] = conPremio
+    .filter(([id]) => clientesConPremio.has(id))
+    .map(([id, r]) => ({
+      clienteId: id,
+      nombre: clientesConPremio.get(id)!.nombre_completo,
+      telefono: clientesConPremio.get(id)!.telefono,
+      saldo: r.saldo,
+      premios: r.premios_disponibles.map((p) => p.nombre),
+      reaviso: r.estado_aviso === "reavisar",
+    }));
 
   const { porMarca, total } = calcularTotales(movimientosMes);
 
@@ -66,7 +89,7 @@ export async function obtenerDashboard() {
     .sort((a, b) => (a.fecha_proxima ?? "").localeCompare(b.fecha_proxima ?? ""))
     .slice(0, 5);
 
-  const alertasRecordatorios = recordatorios.filter((r) => debeAlertar(r));
+  const alertasRecordatorios = recordatorios.filter((r) => debeAlertarRecordatorio(r));
 
   return {
     autosEnTallerCantidad: autosEnTaller.length,
@@ -85,5 +108,7 @@ export async function obtenerDashboard() {
     })),
     recordatoriosProximos,
     alertasRecordatorios,
+    reservasNuevas,
+    alertasPremios,
   };
 }

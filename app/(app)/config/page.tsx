@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { LogOut } from "lucide-react";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { CambiarPasswordForm } from "@/components/config/CambiarPasswordForm";
@@ -7,6 +8,9 @@ import { EditableCategoriasForm } from "@/components/config/EditableCategoriasFo
 import { createClient } from "@/lib/supabase/server";
 import { cerrarSesion } from "@/app/login/actions";
 import { obtenerConfiguracion } from "@/lib/data/config";
+import { listarBloqueosFuturos } from "@/lib/data/bloqueos";
+import { AgendaOnlineConfig } from "@/components/config/AgendaOnlineConfig";
+import { BloqueosConfig } from "@/components/config/BloqueosConfig";
 
 export default async function ConfigPage() {
   const supabase = await createClient();
@@ -15,7 +19,18 @@ export default async function ConfigPage() {
       data: { user },
     },
     configuracion,
-  ] = await Promise.all([supabase.auth.getUser(), obtenerConfiguracion()]);
+    bloqueos,
+    encabezados,
+  ] = await Promise.all([
+    supabase.auth.getUser(),
+    obtenerConfiguracion(),
+    listarBloqueosFuturos(),
+    headers(),
+  ]);
+
+  const host = encabezados.get("x-forwarded-host") ?? encabezados.get("host") ?? "";
+  const protocolo = encabezados.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  const urlPublica = `${protocolo}://${host}/reservar`;
 
   return (
     <div className="flex flex-col gap-6">
@@ -56,6 +71,22 @@ export default async function ConfigPage() {
           subtitle="Se usan para validar los turnos que se agendan en Agenda (§6.4)"
         />
         <EditableHorariosForm horarios={configuracion.horarios} />
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="Agenda online"
+          subtitle="La página donde los clientes reservan solos su turno, por link o desde la web"
+        />
+        <AgendaOnlineConfig config={configuracion.reservas} urlPublica={urlPublica} />
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="Días bloqueados"
+          subtitle="Días o franjas en los que la agenda online no toma reservas"
+        />
+        <BloqueosConfig bloqueos={bloqueos} config={configuracion.reservas} />
       </Card>
 
       <Card>

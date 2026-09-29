@@ -52,12 +52,14 @@ export function TableroClient({
   clientes,
   servicios,
   horarios,
+  direccion,
 }: {
   ordenes: OrdenConDatos[];
   esperandoIngreso: TurnoConDatos[];
   clientes: ClienteConVehiculos[];
   servicios: Servicio[];
   horarios: Horarios;
+  direccion: string;
 }) {
   const [ordenAbierta, setOrdenAbierta] = useState<OrdenConDatos | null>(null);
   const [turnoAbierto, setTurnoAbierto] = useState<TurnoConDatos | null>(null);
@@ -275,7 +277,7 @@ export function TableroClient({
         <OrdenModal orden={ordenActualizada} onCerrar={() => setOrdenAbierta(null)} />
       )}
       {turnoActualizado && (
-        <TurnoPopup turno={turnoActualizado} onCerrar={() => setTurnoAbierto(null)} />
+        <TurnoPopup turno={turnoActualizado} direccion={direccion} onCerrar={() => setTurnoAbierto(null)} />
       )}
       {nuevoTurnoAbierto && (
         <Modal titulo="Nuevo turno detailing" onCerrar={() => setNuevoTurnoAbierto(false)}>

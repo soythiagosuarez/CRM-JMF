@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { Button } from "@/components/ui/Button";
 import type { EstadoFormulario } from "@/app/(app)/clientes/actions";
 import type { Vehiculo } from "@/lib/types/cliente";
+import { CONDICION_LABEL, TAMANOS } from "@/lib/reservas/vehiculos";
 
 const estadoInicial: EstadoFormulario = {};
 
@@ -62,13 +63,29 @@ export function VehiculoForm({
           name="color"
           placeholder="Color"
           defaultValue={vehiculo?.color ?? ""}
-          className="campo sm:col-span-2"
+          className="campo"
         />
+        <select name="tamano" defaultValue={vehiculo?.tamano ?? ""} className="campo" aria-label="Tamaño">
+          <option value="">Tamaño</option>
+          {TAMANOS.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.label} ({t.ejemplos})
+            </option>
+          ))}
+        </select>
+        <select name="condicion" defaultValue={vehiculo?.condicion ?? ""} className="campo" aria-label="0 km o usado">
+          <option value="">¿0 km o usado?</option>
+          {(Object.keys(CONDICION_LABEL) as (keyof typeof CONDICION_LABEL)[]).map((c) => (
+            <option key={c} value={c}>
+              {CONDICION_LABEL[c]}
+            </option>
+          ))}
+        </select>
         <input
           name="detalles"
           placeholder="Detalles / observaciones"
           defaultValue={vehiculo?.detalles ?? ""}
-          className="campo sm:col-span-2"
+          className="campo sm:col-span-4"
         />
       </div>
 

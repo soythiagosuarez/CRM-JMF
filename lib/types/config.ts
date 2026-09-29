@@ -43,10 +43,65 @@ export type Horarios = Record<DiaSemana, HorarioDia>;
 
 export type CategoriasMovimiento = Record<TipoMovimiento, Record<MarcaMovimiento, string[]>>;
 
+/** Franja de ingreso de autos para la agenda online (ej. 09:00–13:00). */
+export interface Franja {
+  desde: string; // "HH:MM"
+  hasta: string; // "HH:MM"
+}
+
+export type FranjasPorDia = Record<DiaSemana, Franja[]>;
+
+/** Ajustes de la agenda online (/reservar), editables en Config. */
+export interface ConfigReservas {
+  /** Número de WhatsApp de JMF en formato internacional, solo dígitos. */
+  whatsapp: string;
+  direccion: string;
+  /** Lo que el cliente tiene que saber antes de venir (pantalla final). */
+  indicaciones: string[];
+  franjas: FranjasPorDia;
+  /** Autos que entran en el taller al mismo tiempo. */
+  capacidad_taller: number;
+  anticipacion_min_dias: number;
+  anticipacion_max_dias: number;
+  /** Anti-spam: reservas pendientes que puede tener un mismo celular. */
+  max_pendientes_por_celular: number;
+}
+
+/** Motivos de puntos que se cargan a mano desde la ficha del cliente. */
+export type MotivoPuntos =
+  | "recomendacion"
+  | "resena_google"
+  | "cumpleanos"
+  | "shop"
+  | "classmotor"
+  | "reserva_online"
+  | "ajuste";
+
+export const MOTIVO_PUNTOS_LABEL: Record<MotivoPuntos, string> = {
+  recomendacion: "Recomendó a alguien que vino",
+  resena_google: "Dejó reseña en Google",
+  cumpleanos: "Cumpleaños",
+  shop: "Compra en Shop",
+  classmotor: "Compró o vendió un auto con Classmotor",
+  reserva_online: "Reservó por la agenda online",
+  ajuste: "Ajuste o corrección",
+};
+
+export interface ConfigFidelizacion {
+  /** 1 punto cada tantos pesos cobrados en servicios básicos. */
+  pesos_por_punto: number;
+  /** Días sin respuesta para volver a avisar al cliente. */
+  reaviso_dias: number;
+  /** Puntos sugeridos por motivo al cargar a mano (vacío = se escribe). */
+  puntos_por_motivo: Partial<Record<MotivoPuntos, number>>;
+}
+
 export interface Configuracion {
   id: string;
   horarios: Horarios;
   categorias_movimiento: CategoriasMovimiento;
+  reservas: ConfigReservas;
+  fidelizacion: ConfigFidelizacion;
   updated_at: string;
 }
 

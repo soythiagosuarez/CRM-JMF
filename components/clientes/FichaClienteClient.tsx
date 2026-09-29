@@ -21,6 +21,12 @@ import { formatARS, formatFecha } from "@/lib/format";
 import type { ClienteConVehiculos } from "@/lib/types/cliente";
 import type { OrdenConDatos } from "@/lib/types/orden";
 import type { Servicio } from "@/lib/types/servicio";
+import type { TurnoConDatos } from "@/lib/types/turno";
+import type { ConfigFidelizacion } from "@/lib/types/config";
+import type { AvisoFidelizacion, MovimientoPuntos, Premio, ResumenFidelizacion } from "@/lib/types/fidelizacion";
+import { FidelizacionCard } from "./FidelizacionCard";
+import { TurnosClienteCard } from "./TurnosClienteCard";
+import { CONDICION_LABEL, TAMANO_LABEL } from "@/lib/reservas/vehiculos";
 
 const ESTADO_LABEL = {
   en_cola: "En cola",
@@ -40,10 +46,21 @@ export function FichaClienteClient({
   cliente,
   historial,
   servicios,
+  turnos,
+  fidelizacion,
+  configFidelizacion,
 }: {
   cliente: ClienteConVehiculos;
   historial: OrdenConDatos[];
   servicios: Servicio[];
+  turnos: TurnoConDatos[];
+  fidelizacion: {
+    resumen: ResumenFidelizacion;
+    movimientos: MovimientoPuntos[];
+    avisos: AvisoFidelizacion[];
+    premios: Premio[];
+  };
+  configFidelizacion: ConfigFidelizacion;
 }) {
   const [editandoDatos, setEditandoDatos] = useState(false);
   const [agregandoVehiculo, setAgregandoVehiculo] = useState(false);
@@ -111,6 +128,9 @@ export function FichaClienteClient({
               )}
               {cliente.notas && (
                 <p className="text-sm text-texto-secundario mt-2">{cliente.notas}</p>
+              )}
+              {cliente.acepta_promos && (
+                <p className="text-xs text-verde mt-2">Acepta recibir promociones por WhatsApp</p>
               )}
             </div>
             <div className="flex items-center gap-3 shrink-0">
@@ -187,7 +207,14 @@ export function FichaClienteClient({
                       {[v.marca, v.modelo, v.anio].filter(Boolean).join(" ") || "Vehículo"}
                     </p>
                     <p className="text-xs text-texto-secundario mt-0.5">
-                      {[v.patente, v.color].filter(Boolean).join(" · ") || "Sin datos"}
+                      {[
+                        v.patente,
+                        v.color,
+                        v.tamano ? TAMANO_LABEL[v.tamano] : null,
+                        v.condicion ? CONDICION_LABEL[v.condicion] : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ") || "Sin datos"}
                     </p>
                     {v.detalles && (
                       <p className="text-xs text-texto-secundario mt-0.5">{v.detalles}</p>
@@ -236,6 +263,17 @@ export function FichaClienteClient({
           )}
         </div>
       </Card>
+
+      <FidelizacionCard
+        cliente={{ id: cliente.id, nombre: cliente.nombre_completo, telefono: cliente.telefono }}
+        resumen={fidelizacion.resumen}
+        movimientos={fidelizacion.movimientos}
+        avisos={fidelizacion.avisos}
+        premios={fidelizacion.premios}
+        config={configFidelizacion}
+      />
+
+      <TurnosClienteCard turnos={turnos} />
 
       <Card>
         <CardHeader title="Historial de servicios" />
