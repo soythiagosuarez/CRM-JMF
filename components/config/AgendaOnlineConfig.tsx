@@ -1,12 +1,13 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { Copy, ExternalLink, Pencil } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Copy, ExternalLink, Pencil } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { actualizarConfigReservas, type EstadoConfigForm } from "@/app/(app)/config/actions";
 import { formatearWhatsapp } from "@/lib/reservas/config";
-import { DIAS_SEMANA, DIA_LABEL, type ConfigReservas, type Franja } from "@/lib/types/config";
+import type { EstadoAgendaOnline } from "@/lib/types/reserva";
+import { DIAS_SEMANA, DIA_LABEL, resumenFranjas, type ConfigReservas, type Franja } from "@/lib/types/config";
 
 const estadoInicial: EstadoConfigForm = {};
 
@@ -34,7 +35,15 @@ function BotonCopiar({ texto, etiqueta }: { texto: string; etiqueta: string }) {
   );
 }
 
-export function AgendaOnlineConfig({ config, urlPublica }: { config: ConfigReservas; urlPublica: string }) {
+export function AgendaOnlineConfig({
+  config,
+  urlPublica,
+  estadoAgenda,
+}: {
+  config: ConfigReservas;
+  urlPublica: string;
+  estadoAgenda: EstadoAgendaOnline;
+}) {
   const [abierto, setAbierto] = useState(false);
   const [estado, formAction, enviando] = useActionState(
     async (prev: EstadoConfigForm, formData: FormData) => {
@@ -60,6 +69,21 @@ export function AgendaOnlineConfig({ config, urlPublica }: { config: ConfigReser
 
   return (
     <div className="flex flex-col gap-4 text-sm">
+      {estadoAgenda.ok ? (
+        <p className="flex items-center gap-2 rounded-lg border border-verde/30 bg-verde/10 px-3 py-2 text-texto">
+          <CheckCircle2 size={16} className="text-verde shrink-0" />
+          La agenda está funcionando: {estadoAgenda.servicios}{" "}
+          {estadoAgenda.servicios === 1 ? "servicio disponible" : "servicios disponibles"} para reservar.
+        </p>
+      ) : (
+        <div className="flex items-start gap-2 rounded-lg border border-rojo/40 bg-rojo/10 px-3 py-2 text-texto" role="alert">
+          <AlertTriangle size={16} className="text-rojo shrink-0 mt-0.5" />
+          <p>
+            <span className="font-medium">La agenda no está funcionando.</span> {estadoAgenda.problema}
+          </p>
+        </div>
+      )}
+
       <div className="flex flex-col gap-2 rounded-lg border border-borde bg-panel-2 p-3">
         <p className="text-texto-secundario">Link para compartir (Instagram, WhatsApp Business, Google Maps, QR)</p>
         <div className="flex flex-wrap items-center gap-3">
@@ -107,9 +131,9 @@ export function AgendaOnlineConfig({ config, urlPublica }: { config: ConfigReser
           <div className="sm:col-span-2">
             <dt className="text-xs text-texto-secundario">Franjas de ingreso</dt>
             <dd className="text-texto">
-              {DIAS_SEMANA.filter((d) => config.franjas[d].length > 0)
-                .map((d) => `${DIA_LABEL[d].slice(0, 3)} ${franjasTexto(config.franjas[d])}`)
-                .join(" · ")}
+              {resumenFranjas(config.franjas).map((linea) => (
+                <p key={linea}>{linea}</p>
+              ))}
             </dd>
           </div>
         </dl>

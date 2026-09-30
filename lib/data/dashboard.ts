@@ -45,7 +45,7 @@ export async function obtenerDashboard() {
     (await obtenerClientesPorIds(conPremio.map(([id]) => id))).map((c) => [c.id, c])
   );
   const alertasPremios: AlertaPremio[] = conPremio
-    .filter(([id]) => clientesConPremio.has(id))
+    .filter(([id]) => clientesConPremio.has(id) && clientesConPremio.get(id)!.origen !== "classmotor")
     .map(([id, r]) => ({
       clienteId: id,
       nombre: clientesConPremio.get(id)!.nombre_completo,

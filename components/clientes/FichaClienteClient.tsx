@@ -264,14 +264,16 @@ export function FichaClienteClient({
         </div>
       </Card>
 
-      <FidelizacionCard
-        cliente={{ id: cliente.id, nombre: cliente.nombre_completo, telefono: cliente.telefono }}
-        resumen={fidelizacion.resumen}
-        movimientos={fidelizacion.movimientos}
-        avisos={fidelizacion.avisos}
-        premios={fidelizacion.premios}
-        config={configFidelizacion}
-      />
+      {cliente.origen !== "classmotor" && (
+        <FidelizacionCard
+          cliente={{ id: cliente.id, nombre: cliente.nombre_completo, telefono: cliente.telefono }}
+          resumen={fidelizacion.resumen}
+          movimientos={fidelizacion.movimientos}
+          avisos={fidelizacion.avisos}
+          premios={fidelizacion.premios}
+          config={configFidelizacion}
+        />
+      )}
 
       <TurnosClienteCard turnos={turnos} />
 

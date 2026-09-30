@@ -154,3 +154,48 @@ export function resumenHorarios(horarios: Horarios): string {
     })
     .join(" · ");
 }
+
+/** "09:00" → "9hs", "09:30" → "9:30hs" */
+function horaHs(hora: string): string {
+  const [h, m] = hora.slice(0, 5).split(":");
+  return `${Number(h)}${m === "00" ? "" : `:${m}`}hs`;
+}
+
+/** Rango de días agrupados: "Lunes", "Lunes y martes", "Lunes a viernes". */
+function rangoDias(dias: DiaSemana[]): string {
+  const primero = DIA_LABEL[dias[0]];
+  if (dias.length === 1) return primero;
+  const ultimo = DIA_LABEL[dias[dias.length - 1]].toLowerCase();
+  return dias.length === 2 ? `${primero} y ${ultimo}` : `${primero} a ${ultimo}`;
+}
+
+/**
+ * Franjas de ingreso resumidas, juntando los días seguidos que tienen las
+ * mismas franjas: ["Lunes a viernes: 9hs a 13hs / 14hs a 18hs",
+ * "Sábado: 9hs a 13hs"]. Si cada día es distinto, queda uno por renglón.
+ */
+export function resumenFranjas(franjas: FranjasPorDia): string[] {
+  const clave = (lista: Franja[]) => lista.map((f) => `${f.desde}-${f.hasta}`).join(",");
+  const grupos: { dias: DiaSemana[]; franjas: Franja[] }[] = [];
+
+  for (const dia of DIAS_SEMANA) {
+    const lista = franjas[dia] ?? [];
+    const ultimo = grupos.at(-1);
+    const anterior = ultimo?.dias.at(-1);
+    const esSeguido = anterior !== undefined && DIAS_SEMANA.indexOf(anterior) === DIAS_SEMANA.indexOf(dia) - 1;
+    if (lista.length === 0) {
+      grupos.push({ dias: [dia], franjas: [] }); // corta la racha de días seguidos
+      continue;
+    }
+    if (ultimo && esSeguido && ultimo.franjas.length > 0 && clave(ultimo.franjas) === clave(lista)) {
+      ultimo.dias.push(dia);
+    } else {
+      grupos.push({ dias: [dia], franjas: lista });
+    }
+  }
+
+  const lineas = grupos
+    .filter((g) => g.franjas.length > 0)
+    .map((g) => `${rangoDias(g.dias)}: ${g.franjas.map((f) => `${horaHs(f.desde)} a ${horaHs(f.hasta)}`).join(" / ")}`);
+  return lineas.length > 0 ? lineas : ["No se reciben autos ningún día"];
+}

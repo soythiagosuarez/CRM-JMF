@@ -130,4 +130,7 @@ export interface VehiculoEnmascarado {
   patente: string;
 }
 
+/** Resultado del chequeo que muestra Config sobre la agenda online. */
+export type EstadoAgendaOnline = { ok: true; servicios: number } | { ok: false; problema: string };
+
 export type { ConfigReservas };

@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 import { cerrarSesion } from "@/app/login/actions";
 import { obtenerConfiguracion } from "@/lib/data/config";
 import { listarBloqueosFuturos } from "@/lib/data/bloqueos";
+import { diagnosticarAgendaOnline } from "@/lib/reservas/diagnostico";
 import { AgendaOnlineConfig } from "@/components/config/AgendaOnlineConfig";
 import { BloqueosConfig } from "@/components/config/BloqueosConfig";
 
@@ -21,11 +22,13 @@ export default async function ConfigPage() {
     configuracion,
     bloqueos,
     encabezados,
+    estadoAgenda,
   ] = await Promise.all([
     supabase.auth.getUser(),
     obtenerConfiguracion(),
     listarBloqueosFuturos(),
     headers(),
+    diagnosticarAgendaOnline(),
   ]);
 
   const host = encabezados.get("x-forwarded-host") ?? encabezados.get("host") ?? "";
@@ -78,7 +81,7 @@ export default async function ConfigPage() {
           title="Agenda online"
           subtitle="La página donde los clientes reservan solos su turno, por link o desde la web"
         />
-        <AgendaOnlineConfig config={configuracion.reservas} urlPublica={urlPublica} />
+        <AgendaOnlineConfig config={configuracion.reservas} urlPublica={urlPublica} estadoAgenda={estadoAgenda} />
       </Card>
 
       <Card>

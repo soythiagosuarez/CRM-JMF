@@ -7,6 +7,7 @@ import { buscarClientes, obtenerClientesPorIds } from "@/lib/data/clientes";
 import { obtenerResumenesFidelizacion, RESUMEN_VACIO } from "@/lib/data/fidelizacion";
 import { NuevoClienteToggle } from "@/components/clientes/NuevoClienteToggle";
 import type { Cliente, OrigenCliente } from "@/lib/types/cliente";
+import type { ResumenFidelizacion } from "@/lib/types/fidelizacion";
 
 type Vista = "todos" | "premio" | "ranking";
 
@@ -23,8 +24,11 @@ export default async function ClientesPage({
 }) {
   const { q, origen: origenParam, vista: vistaParam } = await searchParams;
   const origen: OrigenCliente = origenParam === "classmotor" ? "classmotor" : "detailing";
-  const vista: Vista = vistaParam === "premio" || vistaParam === "ranking" ? vistaParam : "todos";
-  const resumenes = await obtenerResumenesFidelizacion();
+  // La fidelización es solo para clientes de Detailing.
+  const conPuntos = origen === "detailing";
+  const vista: Vista =
+    conPuntos && (vistaParam === "premio" || vistaParam === "ranking") ? vistaParam : "todos";
+  const resumenes = conPuntos ? await obtenerResumenesFidelizacion() : new Map<string, ResumenFidelizacion>();
   const resumenDe = (id: string) => resumenes.get(id) ?? RESUMEN_VACIO;
 
   let clientes: Cliente[];
@@ -46,8 +50,9 @@ export default async function ClientesPage({
 
   const href = (cambios: { origen?: OrigenCliente; vista?: Vista }) => {
     const params = new URLSearchParams();
-    params.set("origen", cambios.origen ?? origen);
-    const v = cambios.vista ?? vista;
+    const o = cambios.origen ?? origen;
+    params.set("origen", o);
+    const v = o === "detailing" ? (cambios.vista ?? vista) : "todos";
     if (v !== "todos") params.set("vista", v);
     if (q && v === "todos") params.set("q", q);
     return `/clientes?${params.toString()}`;
@@ -59,17 +64,21 @@ export default async function ClientesPage({
         <div>
           <h1 className="font-display text-2xl font-semibold text-texto">Clientes</h1>
           <p className="text-sm text-texto-secundario mt-1">
-            Ficha con datos, vehículos, historial y puntos. Búsqueda por nombre o patente.
+            {conPuntos
+              ? "Ficha con datos, vehículos, historial y puntos. Búsqueda por nombre o patente."
+              : "Ficha con datos, vehículos e historial. Búsqueda por nombre o patente."}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href="/clientes/fidelizacion"
-            className="inline-flex items-center gap-2 rounded-lg border border-dorado/40 px-4 py-2 text-sm font-medium text-dorado hover:bg-dorado/10"
-          >
-            <Gift size={16} />
-            Premios y puntos
-          </Link>
+          {conPuntos && (
+            <Link
+              href="/clientes/fidelizacion"
+              className="inline-flex items-center gap-2 rounded-lg border border-dorado/40 px-4 py-2 text-sm font-medium text-dorado hover:bg-dorado/10"
+            >
+              <Gift size={16} />
+              Premios y puntos
+            </Link>
+          )}
           <NuevoClienteToggle origenInicial={origen} />
         </div>
       </div>
@@ -88,19 +97,21 @@ export default async function ClientesPage({
             </Link>
           ))}
         </div>
-        <div className="flex flex-wrap rounded-lg border border-borde overflow-hidden">
-          {VISTAS.map((v) => (
-            <Link
-              key={v.id}
-              href={href({ vista: v.id })}
-              className={`px-3 py-1.5 text-sm ${
-                vista === v.id ? "bg-dorado/10 text-dorado" : "text-texto-secundario hover:text-texto"
-              }`}
-            >
-              {v.label}
-            </Link>
-          ))}
-        </div>
+        {conPuntos && (
+          <div className="flex flex-wrap rounded-lg border border-borde overflow-hidden">
+            {VISTAS.map((v) => (
+              <Link
+                key={v.id}
+                href={href({ vista: v.id })}
+                className={`px-3 py-1.5 text-sm ${
+                  vista === v.id ? "bg-dorado/10 text-dorado" : "text-texto-secundario hover:text-texto"
+                }`}
+              >
+                {v.label}
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
       {vista === "todos" && (
@@ -155,7 +166,7 @@ export default async function ClientesPage({
                       {vista === "ranking" && <span className="text-dorado mr-1.5">#{i + 1}</span>}
                       {c.nombre_completo}
                     </p>
-                    {r.premios_disponibles.length > 0 && (
+                    {conPuntos && r.premios_disponibles.length > 0 && (
                       <Badge tono="premium">
                         <Gift size={12} className="mr-1" />
                         Premio
@@ -169,14 +180,16 @@ export default async function ClientesPage({
                       {c.como_llego}
                     </p>
                   )}
-                  <div className="mt-auto flex items-center justify-between gap-2 pt-2 border-t border-borde text-xs">
-                    <span className="inline-flex items-center gap-1 text-dorado tabular-nums">
-                      <Star size={12} /> {r.saldo} pts
-                    </span>
-                    <span className="text-texto-secundario">
-                      Gastó <Monto valor={r.total_gastado} className="text-texto tabular-nums" />
-                    </span>
-                  </div>
+                  {conPuntos && (
+                    <div className="mt-auto flex items-center justify-between gap-2 pt-2 border-t border-borde text-xs">
+                      <span className="inline-flex items-center gap-1 text-dorado tabular-nums">
+                        <Star size={12} /> {r.saldo} pts
+                      </span>
+                      <span className="text-texto-secundario">
+                        Gastó <Monto valor={r.total_gastado} className="text-texto tabular-nums" />
+                      </span>
+                    </div>
+                  )}
                 </Card>
               </Link>
             );
