@@ -28,30 +28,50 @@ type ServicioLimites = Pick<
   "id" | "nombre" | "variantes" | "duracion_valor" | "duracion_unidad" | "limite_dia" | "limite_semana"
 >;
 
-/** Jornadas de taller que ocupa un servicio (o la variante elegida). Los
- * servicios de horas ocupan solo el día de ingreso. */
-export function jornadasServicio(servicio: ServicioDuracion, variante: number | null): number {
+/** Duración de un servicio (o de la variante elegida, si tiene la suya). */
+function duracion(
+  servicio: ServicioDuracion,
+  variante: number | null
+): { valor: number; unidad: "horas" | "dias" } | null {
   const v = variante != null ? servicio.variantes[variante] : undefined;
   const valor = v?.duracion_valor ?? servicio.duracion_valor;
   const unidad =
     v?.duracion_valor != null ? (v.duracion_unidad ?? "dias") : servicio.duracion_unidad;
-  if (!valor || valor <= 0) return 1;
-  if (unidad === "horas") return Math.max(1, Math.ceil(valor / HORAS_POR_JORNADA));
-  return Math.ceil(valor);
+  if (!valor || valor <= 0) return null;
+  return { valor, unidad: unidad === "horas" ? "horas" : "dias" };
 }
 
-/** Varios servicios en el mismo turno se hacen durante la misma estadía:
- * el auto queda lo que dure el más largo. */
+/** Jornadas de taller que ocupa un servicio (o la variante elegida). Los
+ * servicios de horas ocupan solo el día de ingreso. */
+export function jornadasServicio(servicio: ServicioDuracion, variante: number | null): number {
+  const d = duracion(servicio, variante);
+  if (!d) return 1;
+  if (d.unidad === "horas") return Math.max(1, Math.ceil(d.valor / HORAS_POR_JORNADA));
+  return Math.ceil(d.valor);
+}
+
+/**
+ * Varios servicios en el mismo turno: muchas veces mientras se trabaja
+ * en uno no se puede trabajar en el otro (Joaco), así que el plazo es la
+ * suma de lo que dura cada uno. Los servicios de horas se juntan en
+ * jornadas de 9 h: lavado (4 h) + motor (5 h) = 1 día; cerámico (4 días)
+ * + ópticas (1 día) = 5 días.
+ */
 export function jornadasItems(
   items: ItemReserva[],
   servicios: (ServicioDuracion & { id: string })[]
 ): number {
-  let max = 1;
+  let dias = 0;
+  let horas = 0;
   for (const item of items) {
     const servicio = servicios.find((s) => s.id === item.servicio_id);
-    if (servicio) max = Math.max(max, jornadasServicio(servicio, item.variante));
+    if (!servicio) continue;
+    const d = duracion(servicio, item.variante);
+    if (!d) dias += 1;
+    else if (d.unidad === "horas") horas += d.valor;
+    else dias += Math.ceil(d.valor);
   }
-  return max;
+  return Math.max(1, dias + Math.ceil(horas / HORAS_POR_JORNADA));
 }
 
 function bloqueosDelDia(fecha: string, bloqueos: Bloqueo[]): Bloqueo[] {

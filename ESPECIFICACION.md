@@ -152,7 +152,7 @@ Renovación / mantenimiento (defaults, editables al cerrar la orden):
 
 - Solo trabajos confirmados. El "posible cliente que viene a que le vean el auto" **no** es un turno → va como Lead.
 - Sin seña ni anticipo.
-- Horarios de atención: **lunes a viernes 9–18, sábados 10–13.**
+- Horarios de atención: **lunes a viernes 9–18, sábados 9–13** (los sábados pasaron de 10 a 9 en septiembre 2026, se editan en Config).
 - Cuando el auto ingresa → se crea/activa la **Orden**.
 
 ### 6.5 Orden (Detailing) — nace de un turno
@@ -387,7 +387,7 @@ Definido con Joaco en el relevamiento de septiembre 2026. Se construye primero l
 - Datos obligatorios: nombre y apellido y celular; del auto: marca, modelo, año, patente, color, tamaño (chico / mediano / SUV / pick-up / grande) y 0 km o usado. Email opcional. Se pregunta cómo nos conoció. Casilla opcional para recibir promociones por WhatsApp. Aviso y página de privacidad (Ley 25.326).
 - Servicios con precio fijo → turno **agendado**. Servicios "a confirmar por WhatsApp" (PPF, cerámico, acrílico, sacabollo) → turno **a confirmar**, que igual ocupa el lugar. Precio variable = «Desde $X» + aviso de precio aproximado.
 - Ingreso por franjas: lunes a viernes 9–13 y 14–18, sábados 9–13. Se reserva desde mañana y hasta 60 días adelante.
-- Lugar: entran 5 autos en el taller; un auto ocupa lugar desde que entra hasta que está listo (días de trabajo lunes a sábado, sin días bloqueados). Topes por servicio: lavado premium 4/día · PPF 1/semana · cerámico 2/semana · acrílico 2/semana · interior 2/día y 4/semana · motor 2/día y 4/semana · ópticas 2/día · sacabollo 1/día · polarizado 1/día · llantas 1/semana. Varios servicios en un turno: el auto queda lo que dura el más largo.
+- Lugar: entran 5 autos en el taller; un auto ocupa lugar desde que entra hasta que está listo (días de trabajo lunes a sábado, sin días bloqueados). Topes por servicio: lavado premium 4/día · PPF 1/semana · cerámico 2/semana · acrílico 2/semana · interior 2/día y 4/semana · motor 2/día y 4/semana · ópticas 2/día · sacabollo 1/día · polarizado 1/día · llantas 1/semana. Varios servicios en un turno: el plazo es la suma de lo que dura cada uno (mientras se trabaja en uno, a veces no se puede trabajar en el otro); los de horas se juntan en jornadas de 9 h.
 - Anti-spam: máximo 2 reservas pendientes por celular (captcha, más adelante).
 - Sin seña. Cambios y cancelaciones por WhatsApp (el link personal para autogestión, más adelante).
 - Puerta a puerta: el cliente lo marca y se coordina por WhatsApp (zona norte del GBA, costo según zona).
