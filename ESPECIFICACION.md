@@ -152,7 +152,7 @@ Renovación / mantenimiento (defaults, editables al cerrar la orden):
 
 - Solo trabajos confirmados. El "posible cliente que viene a que le vean el auto" **no** es un turno → va como Lead.
 - Sin seña ni anticipo.
-- Horarios de atención: **lunes a viernes 9–18, sábados 10–13.**
+- Horarios de atención: **lunes a viernes 9–18, sábados 9–13** (los sábados pasaron de 10 a 9 en septiembre 2026, se editan en Config).
 - Cuando el auto ingresa → se crea/activa la **Orden**.
 
 ### 6.5 Orden (Detailing) — nace de un turno
@@ -373,6 +373,37 @@ a hacer primero, para confirmar que estamos alineados.
 No avances a otros módulos hasta que apruebe las fundaciones. Cuando termines,
 mostrame qué hiciste y esperá mi OK para seguir con "Servicios".
 ```
+
+---
+
+## 12. Agenda online y fidelización (septiembre 2026)
+
+Definido con Joaco en el relevamiento de septiembre 2026. Se construye primero la agenda online y la fidelización por la **propuesta 2** (dentro de Clientes); el portal del cliente (propuesta 1) queda para más adelante.
+
+### 12.1 Agenda online (`/reservar`)
+- Página pública, sin login. Se comparte por link (bio de Instagram, respuesta automática de WhatsApp Business, Google Maps, historias, QR en el taller) y se embebe en la web de JMF (`/reservar?embed=1`, sin encabezado). La página del CRM no se puede embeber en otros sitios; la agenda solo en la web de JMF.
+- Flujo: ¿cliente nuevo o actual? → auto → servicios → día y franja → confirmar → pantalla de turno agendado con botón «Avisar a JMF Detailing» y, a los 5 s, pasa solo a WhatsApp (con cuenta regresiva y opción de quedarse).
+- Cliente actual: se reconoce por **celular** (últimos 10 dígitos). Se le muestran sus autos con la patente enmascarada (ej. `AB 1•• ••`). Si no se encuentra, sigue como cliente nuevo. Si un "cliente nuevo" pone un celular que ya existe, se toma como actual; los datos distintos (nombre, email) quedan como nota del turno.
+- Datos obligatorios: nombre y apellido y celular; del auto: marca, modelo, año, patente, color, tamaño (chico / mediano / SUV / pick-up / grande) y 0 km o usado. Email opcional. Se pregunta cómo nos conoció. Casilla opcional para recibir promociones por WhatsApp. Aviso y página de privacidad (Ley 25.326).
+- Servicios con precio fijo → turno **agendado**. Servicios "a confirmar por WhatsApp" (PPF, cerámico, acrílico, sacabollo) → turno **a confirmar**, que igual ocupa el lugar. Precio variable = «Desde $X» + aviso de precio aproximado.
+- Ingreso por franjas: lunes a viernes 9–13 y 14–18, sábados 9–13. Se reserva desde mañana y hasta 60 días adelante.
+- Lugar: entran 5 autos en el taller; un auto ocupa lugar desde que entra hasta que está listo (días de trabajo lunes a sábado, sin días bloqueados). Topes por servicio: lavado premium 4/día · PPF 1/semana · cerámico 2/semana · acrílico 2/semana · interior 2/día y 4/semana · motor 2/día y 4/semana · ópticas 2/día · sacabollo 1/día · polarizado 1/día · llantas 1/semana. Varios servicios en un turno: el plazo es la suma de lo que dura cada uno (mientras se trabaja en uno, a veces no se puede trabajar en el otro); los de horas se juntan en jornadas de 9 h.
+- Anti-spam: máximo 2 reservas pendientes por celular (captcha, más adelante).
+- Sin seña. Cambios y cancelaciones por WhatsApp (el link personal para autogestión, más adelante).
+- Puerta a puerta: el cliente lo marca y se coordina por WhatsApp (zona norte del GBA, costo según zona).
+
+### 12.2 En el CRM
+- Agenda: etiqueta «Online», turnos «a confirmar» punteados (botón Confirmar), «No vino» (queda en la ficha), botón «Recordar turno» por WhatsApp. Alerta en Inicio por cada reserva online nueva.
+- La orden arranca sin precio (el precio que vio el cliente queda como referencia en el turno).
+- Servicios: Joaco edita precios, opciones, duración y topes; se actualiza solo en la agenda.
+- Config: WhatsApp de reservas (54 9 11 6972-8834), dirección (Ituzaingó 1343, San Fernando), indicaciones para el cliente, franjas, capacidad, anticipación, link y código para la web. Días bloqueados (feriados que se cierran, vacaciones, eventos).
+
+### 12.3 Fidelización (propuesta 2)
+- Los puntos se suman al **cobrar** una orden: 1 punto cada $5.000 cobrados en servicios **básicos** (PPF, cerámico y acrílico no suman). Son del cliente (suman todos sus autos) y no vencen. Se arranca de cero.
+- A mano, con motivo: recomendación, reseña en Google, cumpleaños, compra en Shop, Classmotor, reserva online, ajuste. Los puntos sugeridos por motivo se cargan en «Premios y puntos».
+- Premios editables: lavado premium gratis (50), limpieza de motor gratis (100), 10% off (150) y 30% off (275) en servicios no premium, 20% off en servicios premium (275), combo esencial PPF gratis (350). No vencen, no se suman a otras promos.
+- Alerta en Inicio apenas un cliente llega a un premio; botón de WhatsApp con el mensaje aprobado. Se registra la respuesta (canjea / lo guarda / no le interesa); si no responde, se vuelve a avisar a los 15 días.
+- Clientes: puntos y total gastado en la lista, filtro «con premio disponible», ranking de mejores clientes, historial de puntos en la ficha.
 
 ---
 

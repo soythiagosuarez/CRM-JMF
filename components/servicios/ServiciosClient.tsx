@@ -11,7 +11,8 @@ import {
   actualizarServicio,
   cambiarActivoServicio,
 } from "@/app/(app)/servicios/actions";
-import type { Servicio } from "@/lib/types/servicio";
+import { RESERVA_ONLINE_LABEL, type Servicio } from "@/lib/types/servicio";
+import { precioItem, textoPrecio, textoPrecioCatalogo } from "@/lib/reservas/precios";
 
 export function ServiciosClient({ servicios }: { servicios: Servicio[] }) {
   const [creando, setCreando] = useState(false);
@@ -33,7 +34,8 @@ export function ServiciosClient({ servicios }: { servicios: Servicio[] }) {
         <div>
           <h1 className="font-display text-2xl font-semibold text-texto">Servicios</h1>
           <p className="text-sm text-texto-secundario mt-1">
-            Catálogo con fases, tiempos e intervalos de mantenimiento/renovación.
+            Catálogo con fases, tiempos, precios e intervalos de mantenimiento/renovación. Lo que
+            cambies acá se actualiza solo en la agenda online.
           </p>
         </div>
         {!creando && (
@@ -89,7 +91,26 @@ export function ServiciosClient({ servicios }: { servicios: Servicio[] }) {
                       <Badge tono="neutro">{s.tiempo_estimado}</Badge>
                     )}
                     {s.puerta_a_puerta && <Badge tono="neutro">Puerta a puerta</Badge>}
+                    <Badge tono={s.reserva_online === "no" ? "neutro" : s.reserva_online === "si" ? "positivo" : "premium"}>
+                      {RESERVA_ONLINE_LABEL[s.reserva_online]}
+                    </Badge>
+                    {s.categoria_fidelizacion === "premium" && <Badge tono="premium">Premium · no suma puntos</Badge>}
                   </div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-texto-secundario">
+                    <span className="text-texto">{textoPrecioCatalogo(s)}</span>
+                    {s.limite_dia && <span>Máx. {s.limite_dia} por día</span>}
+                    {s.limite_semana && <span>Máx. {s.limite_semana} por semana</span>}
+                  </div>
+                  {s.variantes.length > 0 && (
+                    <ul className="mt-2 flex flex-col gap-0.5 text-xs text-texto-secundario">
+                      {s.variantes.map((v, i) => (
+                        <li key={v.nombre}>
+                          {v.nombre} · {textoPrecio(precioItem(s, { variante: i, cantidad: 1 }))}
+                          {v.unidad ? ` por ${v.unidad}` : ""}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                   {s.descripcion && (
                     <p className="text-sm text-texto-secundario mt-1">{s.descripcion}</p>
                   )}

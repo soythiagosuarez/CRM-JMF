@@ -43,10 +43,65 @@ export type Horarios = Record<DiaSemana, HorarioDia>;
 
 export type CategoriasMovimiento = Record<TipoMovimiento, Record<MarcaMovimiento, string[]>>;
 
+/** Franja de ingreso de autos para la agenda online (ej. 09:00–13:00). */
+export interface Franja {
+  desde: string; // "HH:MM"
+  hasta: string; // "HH:MM"
+}
+
+export type FranjasPorDia = Record<DiaSemana, Franja[]>;
+
+/** Ajustes de la agenda online (/reservar), editables en Config. */
+export interface ConfigReservas {
+  /** Número de WhatsApp de JMF en formato internacional, solo dígitos. */
+  whatsapp: string;
+  direccion: string;
+  /** Lo que el cliente tiene que saber antes de venir (pantalla final). */
+  indicaciones: string[];
+  franjas: FranjasPorDia;
+  /** Autos que entran en el taller al mismo tiempo. */
+  capacidad_taller: number;
+  anticipacion_min_dias: number;
+  anticipacion_max_dias: number;
+  /** Anti-spam: reservas pendientes que puede tener un mismo celular. */
+  max_pendientes_por_celular: number;
+}
+
+/** Motivos de puntos que se cargan a mano desde la ficha del cliente. */
+export type MotivoPuntos =
+  | "recomendacion"
+  | "resena_google"
+  | "cumpleanos"
+  | "shop"
+  | "classmotor"
+  | "reserva_online"
+  | "ajuste";
+
+export const MOTIVO_PUNTOS_LABEL: Record<MotivoPuntos, string> = {
+  recomendacion: "Recomendó a alguien que vino",
+  resena_google: "Dejó reseña en Google",
+  cumpleanos: "Cumpleaños",
+  shop: "Compra en Shop",
+  classmotor: "Compró o vendió un auto con Classmotor",
+  reserva_online: "Reservó por la agenda online",
+  ajuste: "Ajuste o corrección",
+};
+
+export interface ConfigFidelizacion {
+  /** 1 punto cada tantos pesos cobrados en servicios básicos. */
+  pesos_por_punto: number;
+  /** Días sin respuesta para volver a avisar al cliente. */
+  reaviso_dias: number;
+  /** Puntos sugeridos por motivo al cargar a mano (vacío = se escribe). */
+  puntos_por_motivo: Partial<Record<MotivoPuntos, number>>;
+}
+
 export interface Configuracion {
   id: string;
   horarios: Horarios;
   categorias_movimiento: CategoriasMovimiento;
+  reservas: ConfigReservas;
+  fidelizacion: ConfigFidelizacion;
   updated_at: string;
 }
 
@@ -98,4 +153,49 @@ export function resumenHorarios(horarios: Horarios): string {
       return `${rango} ${g.desde}–${g.hasta}`;
     })
     .join(" · ");
+}
+
+/** "09:00" → "9hs", "09:30" → "9:30hs" */
+function horaHs(hora: string): string {
+  const [h, m] = hora.slice(0, 5).split(":");
+  return `${Number(h)}${m === "00" ? "" : `:${m}`}hs`;
+}
+
+/** Rango de días agrupados: "Lunes", "Lunes y martes", "Lunes a viernes". */
+function rangoDias(dias: DiaSemana[]): string {
+  const primero = DIA_LABEL[dias[0]];
+  if (dias.length === 1) return primero;
+  const ultimo = DIA_LABEL[dias[dias.length - 1]].toLowerCase();
+  return dias.length === 2 ? `${primero} y ${ultimo}` : `${primero} a ${ultimo}`;
+}
+
+/**
+ * Franjas de ingreso resumidas, juntando los días seguidos que tienen las
+ * mismas franjas: ["Lunes a viernes: 9hs a 13hs / 14hs a 18hs",
+ * "Sábado: 9hs a 13hs"]. Si cada día es distinto, queda uno por renglón.
+ */
+export function resumenFranjas(franjas: FranjasPorDia): string[] {
+  const clave = (lista: Franja[]) => lista.map((f) => `${f.desde}-${f.hasta}`).join(",");
+  const grupos: { dias: DiaSemana[]; franjas: Franja[] }[] = [];
+
+  for (const dia of DIAS_SEMANA) {
+    const lista = franjas[dia] ?? [];
+    const ultimo = grupos.at(-1);
+    const anterior = ultimo?.dias.at(-1);
+    const esSeguido = anterior !== undefined && DIAS_SEMANA.indexOf(anterior) === DIAS_SEMANA.indexOf(dia) - 1;
+    if (lista.length === 0) {
+      grupos.push({ dias: [dia], franjas: [] }); // corta la racha de días seguidos
+      continue;
+    }
+    if (ultimo && esSeguido && ultimo.franjas.length > 0 && clave(ultimo.franjas) === clave(lista)) {
+      ultimo.dias.push(dia);
+    } else {
+      grupos.push({ dias: [dia], franjas: lista });
+    }
+  }
+
+  const lineas = grupos
+    .filter((g) => g.franjas.length > 0)
+    .map((g) => `${rangoDias(g.dias)}: ${g.franjas.map((f) => `${horaHs(f.desde)} a ${horaHs(f.hasta)}`).join(" / ")}`);
+  return lineas.length > 0 ? lineas : ["No se reciben autos ningún día"];
 }

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Configuracion } from "@/lib/types/config";
+import { normalizarConfigFidelizacion, normalizarConfigReservas } from "@/lib/reservas/config";
 
 export async function obtenerConfiguracion(): Promise<Configuracion> {
   const supabase = await createClient();
@@ -15,5 +16,9 @@ export async function obtenerConfiguracion(): Promise<Configuracion> {
     );
   }
 
-  return data as Configuracion;
+  return {
+    ...(data as Configuracion),
+    reservas: normalizarConfigReservas(data.reservas),
+    fidelizacion: normalizarConfigFidelizacion(data.fidelizacion),
+  };
 }

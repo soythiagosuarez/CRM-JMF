@@ -22,3 +22,33 @@ supabase db push
 Después de aplicarla, los módulos (Servicios, Clientes, Agenda, etc.) se
 construyen leyendo/escribiendo estas tablas en vez de usar los datos de
 ejemplo de `lib/mock-data.ts`.
+
+## Agenda online y fidelización (migración 0009)
+
+`migrations/0009_agenda_online_y_fidelizacion.sql` agrega lo necesario para
+la agenda pública (`/reservar`) y los puntos de fidelización:
+
+- Servicios: si se reservan online, moneda, opciones con precio propio,
+  duración y máximo por día/semana (carga los precios que pasó Joaco).
+- Vehículos: tamaño y 0 km/usado. Clientes: celular normalizado y permiso
+  para promociones.
+- Turnos: reservas online, estados "a confirmar" y "no vino", franja de
+  ingreso y fecha estimada de listo.
+- Tablas nuevas: `agenda_bloqueos`, `premios`, `puntos_movimientos`,
+  `fidelizacion_avisos`.
+
+Se aplica igual que las anteriores (SQL Editor → pegar → Run), después de
+la 0008.
+
+### Variable de entorno nueva
+
+La agenda pública no tiene login, así que el servidor lee y escribe con la
+**service role key** de Supabase:
+
+```
+SUPABASE_SERVICE_ROLE_KEY=...   # Supabase → Project Settings → API → service_role
+```
+
+Cargala en Vercel (Settings → Environment Variables) y en `.env.local` para
+desarrollo. **No** lleva el prefijo `NEXT_PUBLIC_`: nunca tiene que llegar
+al navegador.

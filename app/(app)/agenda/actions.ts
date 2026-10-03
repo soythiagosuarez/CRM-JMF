@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { obtenerConfiguracion } from "@/lib/data/config";
+import { calcularFinTurno } from "@/lib/reservas/datos";
 import { DIA_SEMANA_POR_INDICE, DIA_LABEL } from "@/lib/types/config";
 import type { TurnoInput } from "@/lib/types/turno";
 import type { Horarios } from "@/lib/types/config";
@@ -127,7 +128,15 @@ export async function crearTurno(
   }
 
   const input: TurnoInput = { cliente_id, vehiculo_id, ...comunes };
-  const { error } = await supabase.from("turnos").insert({ ...input, estado: "agendado" });
+  // Fin estimado: para que la agenda online sepa hasta cuándo ocupa lugar.
+  const fecha_fin_estimada = await calcularFinTurno(
+    supabase,
+    comunes.fecha,
+    comunes.servicios_previstos.map((servicio_id) => ({ servicio_id, variante: null, cantidad: 1 }))
+  );
+  const { error } = await supabase
+    .from("turnos")
+    .insert({ ...input, estado: "agendado", origen: "crm", fecha_fin_estimada });
 
   if (error) return { error: "No se pudo crear el turno: " + error.message };
 
@@ -182,21 +191,49 @@ export async function marcarIngresado(id: string) {
 
   const { error: errorEstadoTurno } = await supabase
     .from("turnos")
-    .update({ estado: "ingresado" })
+    .update({ estado: "ingresado", revisado_en: new Date().toISOString() })
     .eq("id", id);
   if (errorEstadoTurno) throw new Error(errorEstadoTurno.message);
 
   revalidatePath("/agenda");
   revalidatePath("/autos");
+  revalidatePath("/");
 }
 
-export async function cancelarTurno(id: string) {
+async function cambiarEstadoTurno(id: string, estado: "agendado" | "cancelado" | "no_vino") {
   const supabase = await createClient();
   const { error } = await supabase
     .from("turnos")
-    .update({ estado: "cancelado" })
+    .update({ estado, revisado_en: new Date().toISOString() })
     .eq("id", id);
   if (error) throw new Error(error.message);
   revalidatePath("/agenda");
   revalidatePath("/autos");
+  revalidatePath("/clientes");
+  revalidatePath("/");
+}
+
+export async function cancelarTurno(id: string) {
+  await cambiarEstadoTurno(id, "cancelado");
+}
+
+/** Reserva online "a confirmar" → confirmada, después de hablarlo por WhatsApp. */
+export async function confirmarTurno(id: string) {
+  await cambiarEstadoTurno(id, "agendado");
+}
+
+/** El cliente no se presentó (respuesta 7.4): queda registrado en su ficha. */
+export async function marcarNoVino(id: string) {
+  await cambiarEstadoTurno(id, "no_vino");
+}
+
+/** Cierra la alerta de "reserva online nueva" en Inicio. */
+export async function marcarReservaRevisada(id: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("turnos")
+    .update({ revisado_en: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/");
 }

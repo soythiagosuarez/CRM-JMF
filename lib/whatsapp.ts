@@ -3,8 +3,22 @@
  * Arma el link con el mensaje pre-cargado; el envío lo hace la persona.
  */
 export function linkWhatsapp(telefono: string, mensaje: string): string {
-  const numero = telefono.replace(/[^\d]/g, "");
-  return `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
+  return `https://wa.me/${numeroWhatsapp(telefono)}?text=${encodeURIComponent(mensaje)}`;
+}
+
+/**
+ * wa.me necesita el número internacional (54 9 + área + número). Los
+ * celulares se cargan como los escribe la gente ("11 5555-1234",
+ * "011 5555 1234", "+54 9 11 ..."), así que se completan los números
+ * argentinos que vienen sin código de país o sin el 9 de celular.
+ */
+export function numeroWhatsapp(telefono: string): string {
+  let d = telefono.replace(/\D/g, "");
+  if (d.startsWith("00")) d = d.slice(2);
+  if (d.startsWith("0")) d = d.slice(1);
+  if (d.length === 10) return "549" + d;
+  if (d.length === 12 && d.startsWith("54") && d[2] !== "9") return "549" + d.slice(2);
+  return d;
 }
 
 /** Variante sin destinatario fijo (ej. recordatorios libres, sin un
@@ -90,4 +104,51 @@ export function mensajePresupuesto(datos: {
   ].filter((l): l is string => l !== null);
 
   return lineas.join("\n");
+}
+
+/**
+ * Mensaje que el cliente le manda a JMF al terminar de reservar en la
+ * agenda online (aprobado por Joaco, respuesta 6.3). Como el ingreso es
+ * por franja, el horario va como rango ("entre las 9:00 y las 13:00").
+ */
+export function mensajeReservaAJmf(datos: {
+  cliente: string;
+  auto: string;
+  patente: string;
+  servicio: string;
+  dia: string;
+  franja: string;
+  precio: string;
+  codigo: string;
+  aConfirmar: boolean;
+  puertaAPuerta: boolean;
+}): string {
+  const lineas = [
+    "Hola JMF Detailing! Acabo de reservar un turno:",
+    `Nombre: ${datos.cliente}`,
+    `Auto: ${datos.auto}${datos.patente ? ` (${datos.patente})` : ""}`,
+    `Servicio: ${datos.servicio}`,
+    `Día: ${datos.dia}, ${datos.franja}`,
+    `Precio aproximado: ${datos.precio}`,
+    `Código de reserva: ${datos.codigo}`,
+    datos.puertaAPuerta ? "Quiero el servicio puerta a puerta." : null,
+    datos.aConfirmar ? "Quedo a la espera de que me confirmen el turno." : null,
+  ].filter((l): l is string => l !== null);
+  return lineas.join("\n");
+}
+
+/** Recordatorio del turno, para mandar el día anterior (respuesta 6.7). */
+export function mensajeRecordarTurno(
+  cliente: string,
+  auto: string,
+  dia: string,
+  franja: string,
+  direccion: string
+): string {
+  return `Hola ${cliente}, te recordamos tu turno en JMF Detailing para tu ${auto} el ${dia}, ${franja}. Te esperamos en ${direccion}. El timbre no funciona: avisanos por acá cuando llegues. — JMF Detailing`;
+}
+
+/** Aviso de puntos para canjear (aprobado por Joaco, respuesta 12.2). */
+export function mensajePremiosDisponibles(cliente: string, puntos: number, premios: string[]): string {
+  return `Hola ${cliente}, gracias por confiar en JMF Detailing. Ya juntaste ${puntos} puntos y podés canjearlos por: ${premios.join(", ")}. Si querés, lo usamos en tu próximo turno. — JMF Detailing`;
 }

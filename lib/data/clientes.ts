@@ -88,3 +88,12 @@ export async function obtenerCliente(id: string): Promise<ClienteConVehiculos | 
 
   return { ...(cliente as Cliente), vehiculos: (vehiculos ?? []) as Vehiculo[] };
 }
+
+/** Clientes por id (para el ranking y el filtro de premios). */
+export async function obtenerClientesPorIds(ids: string[]): Promise<Cliente[]> {
+  if (ids.length === 0) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("clientes").select("*").in("id", ids);
+  if (error) throw new Error("No se pudieron cargar los clientes: " + error.message);
+  return data as Cliente[];
+}

@@ -31,7 +31,7 @@ export default async function AgendaPage({
 
   const cantidadTurnosHoy = (
     turnosHoy ?? turnos.filter((t) => t.fecha === hoy)
-  ).filter((t) => t.estado !== "cancelado").length;
+  ).filter((t) => t.estado !== "cancelado" && t.estado !== "no_vino").length;
 
   return (
     <CalendarioClient
@@ -39,6 +39,7 @@ export default async function AgendaPage({
       clientes={clientes}
       servicios={servicios.filter((s) => s.activo)}
       horarios={configuracion.horarios}
+      direccion={configuracion.reservas.direccion}
       vista={vista}
       fecha={fecha}
       cantidadTurnosHoy={cantidadTurnosHoy}
