@@ -64,3 +64,5 @@ Servicios en el CRM.
 
 Se aplica igual que las anteriores, después de la 0009. Mientras no se
 corra, la agenda sigue andando con la anticipación general de Config.
+
+Aplicada en producción el 12/10/2026.
