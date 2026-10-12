@@ -82,6 +82,14 @@ function leerInput(formData: FormData): ServicioInput | { error: string } {
     return { error: "Para ofrecerlo en la agenda online, cargá un precio (o opciones con precio)." };
   }
 
+  // Anticipación para reservar online: vacío = la general de Config.
+  const anticipacionValor = numeroOpcional(formData.get("anticipacion_valor"));
+  if (anticipacionValor != null && (anticipacionValor < 0 || !Number.isInteger(anticipacionValor))) {
+    return { error: "La anticipación tiene que ser un número entero (0 o más)." };
+  }
+  const anticipacion_unidad: UnidadDuracion | null =
+    anticipacionValor == null ? null : formData.get("anticipacion_unidad") === "horas" ? "horas" : "dias";
+
   const limiteOpcional = (valor: FormDataEntryValue | null) => {
     const n = numeroOpcional(valor);
     return n != null && n > 0 ? Math.floor(n) : null;
@@ -110,6 +118,8 @@ function leerInput(formData: FormData): ServicioInput | { error: string } {
     duracion_unidad: duracion_valor ? (duracion_unidad ?? "dias") : null,
     limite_dia: limiteOpcional(formData.get("limite_dia")),
     limite_semana: limiteOpcional(formData.get("limite_semana")),
+    anticipacion_valor: anticipacionValor,
+    anticipacion_unidad,
     categoria_fidelizacion,
   };
 }

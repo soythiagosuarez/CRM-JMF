@@ -12,7 +12,10 @@
  *   domingo), contado por fecha de ingreso.
  * - Los servicios de varios días cuentan días de trabajo: los que tienen
  *   franjas cargadas (lunes a sábado) y no están bloqueados.
- * - Se reserva desde mañana y hasta 60 días adelante (configurable).
+ * - Cada servicio tiene su anticipación mínima: los rápidos se reservan
+ *   en el día con 2 horas de margen; los que hay que hablar antes (PPF,
+ *   cerámico…) desde mañana. Si varios, manda el más exigente. Hasta 60
+ *   días adelante (configurable).
  */
 import type { ConfigReservas, Franja } from "@/lib/types/config";
 import type { Bloqueo, ItemReserva, Ocupacion, ServicioPublico } from "@/lib/types/reserva";
@@ -27,7 +30,8 @@ type ServicioDuracion = Pick<ServicioPublico, "variantes" | "duracion_valor" | "
 type ServicioLimites = Pick<
   ServicioPublico,
   "id" | "nombre" | "variantes" | "duracion_valor" | "duracion_unidad" | "limite_dia" | "limite_semana"
->;
+> &
+  Partial<Pick<ServicioPublico, "anticipacion_valor" | "anticipacion_unidad">>;
 
 /** Duración de un servicio (o de la variante elegida, si tiene la suya). */
 function duracion(
@@ -192,26 +196,66 @@ const aHora = (minutos: number) =>
 /**
  * Horarios en los que se puede dejar el auto: cada hora desde que abre la
  * franja hasta una hora antes de que cierre (9 a 13 → 9, 10, 11 y 12).
- * Con `despuesDe` se sacan los que ya pasaron (reservas para hoy).
+ * Con `desdeMinutos` solo quedan los de esa hora en adelante (turnos en
+ * el día, respetando la anticipación).
  */
-export function horariosDeFranjas(franjas: Franja[], despuesDe?: string): string[] {
+export function horariosDeFranjas(franjas: Franja[], desdeMinutos = 0): string[] {
   const horarios: string[] = [];
   for (const f of franjas) {
     const fin = aMinutos(f.hasta);
     for (let t = aMinutos(f.desde); t + INTERVALO_HORARIOS_MIN <= fin; t += INTERVALO_HORARIOS_MIN) {
-      const hora = aHora(t);
-      if (!despuesDe || hora > despuesDe.slice(0, 5)) horarios.push(hora);
+      if (t >= desdeMinutos) horarios.push(aHora(t));
     }
   }
   return [...new Set(horarios)].sort();
+}
+
+/** Anticipación de un servicio; sin cargar, la general de Config (días). */
+function anticipacionDe(
+  servicio: ServicioLimites | undefined,
+  config: ConfigReservas
+): { valor: number; unidad: "horas" | "dias" } {
+  if (servicio?.anticipacion_valor != null) {
+    return { valor: Math.max(0, servicio.anticipacion_valor), unidad: servicio.anticipacion_unidad === "horas" ? "horas" : "dias" };
+  }
+  return { valor: Math.max(0, config.anticipacion_min_dias), unidad: "dias" };
+}
+
+/**
+ * Desde cuándo se puede dejar el auto con estos servicios: fecha y
+ * minuto del día. Con varios servicios manda el que pide más
+ * anticipación (ej. lavado 2 h + PPF 1 día → desde mañana).
+ */
+export function inicioMinimo(
+  items: ItemReserva[],
+  ctx: Pick<ContextoAgenda, "hoy" | "horaActual" | "config" | "servicios">
+): { fecha: string; minutos: number } {
+  const ahora = ctx.horaActual ? aMinutos(ctx.horaActual) : 0;
+  const servicios = items.length > 0 ? items.map((i) => ctx.servicios.find((s) => s.id === i.servicio_id)) : [undefined];
+  let inicio = { fecha: ctx.hoy, minutos: ahora };
+  for (const servicio of servicios) {
+    const { valor, unidad } = anticipacionDe(servicio, ctx.config);
+    let candidato: { fecha: string; minutos: number };
+    if (unidad === "horas") {
+      const total = ahora + valor * 60;
+      candidato = { fecha: sumarDias(ctx.hoy, Math.floor(total / 1440)), minutos: total % 1440 };
+    } else {
+      candidato = valor === 0 ? { fecha: ctx.hoy, minutos: ahora } : { fecha: sumarDias(ctx.hoy, valor), minutos: 0 };
+    }
+    if (candidato.fecha > inicio.fecha || (candidato.fecha === inicio.fecha && candidato.minutos > inicio.minutos)) {
+      inicio = candidato;
+    }
+  }
+  return inicio;
 }
 
 export function rangoReservable(ctx: Pick<ContextoAgenda, "hoy" | "config">): {
   desde: string;
   hasta: string;
 } {
+  // Desde hoy: la anticipación de cada servicio se aplica día por día.
   return {
-    desde: sumarDias(ctx.hoy, Math.max(0, ctx.config.anticipacion_min_dias)),
+    desde: ctx.hoy,
     hasta: sumarDias(ctx.hoy, Math.max(0, ctx.config.anticipacion_max_dias)),
   };
 }
@@ -228,12 +272,21 @@ export function evaluarDia(
     return { disponible: false, motivo: "Fuera del rango de reservas" };
   }
 
-  let franjas = franjasDelDia(fecha, ctx.config, ctx.bloqueos);
-  if (fecha === ctx.hoy && ctx.horaActual) {
-    franjas = franjas.filter((f) => f.hasta.slice(0, 5) > ctx.horaActual!);
+  const inicio = inicioMinimo(items, ctx);
+  if (fecha < inicio.fecha) {
+    return { disponible: false, motivo: "Estos servicios se reservan con más anticipación" };
   }
-  const horarios = horariosDeFranjas(franjas, fecha === ctx.hoy ? ctx.horaActual : undefined);
-  if (horarios.length === 0) return { disponible: false, motivo: "El taller no recibe autos ese día" };
+  const desdeMinutos = fecha === inicio.fecha ? inicio.minutos : 0;
+  const franjas = franjasDelDia(fecha, ctx.config, ctx.bloqueos).filter(
+    (f) => horariosDeFranjas([f], desdeMinutos).length > 0
+  );
+  const horarios = horariosDeFranjas(franjas, desdeMinutos);
+  if (horarios.length === 0) {
+    return {
+      disponible: false,
+      motivo: fecha === inicio.fecha && desdeMinutos > 0 ? "Ya no quedan horarios para hoy" : "El taller no recibe autos ese día",
+    };
+  }
 
   for (const item of items) {
     const servicio = ctx.servicios.find((s) => s.id === item.servicio_id);

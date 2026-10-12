@@ -33,6 +33,7 @@ export default async function ReservarPage({
     const ctx = await obtenerContextoAgenda(createAdminClient());
     datos = {
       hoy: ctx.hoy,
+      horaActual: ctx.horaActual ?? "00:00",
       config: ctx.config,
       servicios: ctx.reservables,
       ocupaciones: ctx.ocupaciones,
