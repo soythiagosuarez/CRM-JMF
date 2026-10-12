@@ -181,3 +181,21 @@ a[aria-label]:focus-visible::after {
   opacity: 1;
   visibility: visible;
 }
+
+/* Menú del CRM en celulares: baja desde el header. */
+@keyframes menu-movil-bajar {
+  from {
+    transform: translateY(-0.75rem);
+    opacity: 0;
+  }
+}
+
+.menu-movil {
+  animation: menu-movil-bajar 0.18s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-movil {
+    animation: none;
+  }
+}

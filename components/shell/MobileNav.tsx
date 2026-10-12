@@ -12,29 +12,30 @@ function ItemMovil({ item, activo }: { item: NavItem; activo: boolean }) {
   return (
     <Link
       href={item.href}
-      className={`flex items-center gap-3 rounded-lg px-3 py-3 text-base transition-colors ${
+      className={`flex items-center gap-2 rounded-lg px-2.5 py-2.5 text-sm leading-tight transition-colors ${
         activo
           ? "bg-rojo/10 text-rojo font-medium border border-rojo/30"
           : "text-texto-secundario hover:bg-panel-2 hover:text-texto border border-transparent"
       }`}
     >
-      <Icon size={20} strokeWidth={2} className="shrink-0" />
-      <span className="truncate">{item.label}</span>
+      <Icon size={18} strokeWidth={2} className="shrink-0" />
+      <span className="min-w-0">{item.label}</span>
     </Link>
   );
 }
 
 /**
  * Navegación del CRM en celulares: el Sidebar se oculta por debajo de md,
- * así que el Topbar muestra un botón de menú que abre este panel lateral
- * con las mismas secciones.
+ * así que el header muestra el botón de menú a la derecha. El menú baja
+ * desde el header, ocupa todo el ancho y solo el alto que necesita; el
+ * botón se convierte en la X en el mismo lugar.
  */
 export function MobileNav() {
   const pathname = usePathname();
   const [abierto, setAbierto] = useState(false);
   const [rutaAlAbrir, setRutaAlAbrir] = useState(pathname);
 
-  // Al navegar a otra sección el panel se cierra solo.
+  // Al navegar a otra sección el menú se cierra solo.
   if (abierto && pathname !== rutaAlAbrir) {
     setAbierto(false);
   }
@@ -44,13 +45,8 @@ export function MobileNav() {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") setAbierto(false);
     };
-    const overflowPrevio = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.body.style.overflow = overflowPrevio;
-      window.removeEventListener("keydown", onKeyDown);
-    };
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, [abierto]);
 
   return (
@@ -59,44 +55,31 @@ export function MobileNav() {
         type="button"
         onClick={() => {
           setRutaAlAbrir(pathname);
-          setAbierto(true);
+          setAbierto((a) => !a);
         }}
-        className="md:hidden -ml-2 flex h-10 w-10 items-center justify-center rounded-lg text-texto hover:bg-panel-2"
+        className="md:hidden -mr-2 flex h-10 w-10 items-center justify-center rounded-lg text-texto hover:bg-panel-2"
         aria-expanded={abierto}
         aria-controls="menu-movil"
       >
-        <Menu size={22} />
-        <span className="sr-only">Abrir menú</span>
+        {abierto ? <X size={22} /> : <Menu size={22} />}
+        <span className="sr-only">{abierto ? "Cerrar menú" : "Abrir menú"}</span>
       </button>
 
       {abierto && (
-        <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label="Menú">
+        <div className="fixed inset-x-0 top-14 bottom-0 z-40 md:hidden">
           <div className="absolute inset-0 bg-black/60" onClick={() => setAbierto(false)} />
           <nav
             id="menu-movil"
-            className="absolute inset-y-0 left-0 flex w-[85%] max-w-xs flex-col border-r border-borde bg-fondo-2 shadow-2xl"
+            aria-label="Menú"
+            className="menu-movil relative max-h-full overflow-y-auto border-b border-borde bg-fondo-2 px-4 pt-3 pb-4 shadow-2xl"
           >
-            <div className="flex h-16 shrink-0 items-center justify-between border-b border-borde pl-5 pr-3">
-              <p className="font-display text-base font-semibold text-texto leading-tight">
-                Centro de Operaciones JMF
-              </p>
-              <button
-                type="button"
-                onClick={() => setAbierto(false)}
-                className="flex h-10 w-10 items-center justify-center rounded-lg text-texto-secundario hover:text-texto"
-              >
-                <X size={20} />
-                <span className="sr-only">Cerrar menú</span>
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-5">
+            <div className="flex flex-col gap-3">
               {navGroups.map((grupo) => (
                 <div key={grupo.titulo}>
-                  <p className="px-3 mb-1.5 text-xs font-semibold uppercase tracking-wider text-texto-secundario">
+                  <p className="px-1 mb-1 text-[11px] font-semibold uppercase tracking-wider text-texto-secundario">
                     {grupo.titulo}
                   </p>
-                  <div className="flex flex-col gap-0.5">
+                  <div className="grid grid-cols-2 gap-1">
                     {grupo.items.map((item) => (
                       <ItemMovil key={item.href} item={item} activo={esRutaActiva(pathname, item.href)} />
                     ))}
@@ -105,14 +88,14 @@ export function MobileNav() {
               ))}
             </div>
 
-            <div className="shrink-0 border-t border-borde px-3 py-3 flex flex-col gap-0.5 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <div className="mt-3 grid grid-cols-2 gap-1 border-t border-borde pt-3">
               <ItemMovil item={configItem} activo={esRutaActiva(pathname, configItem.href)} />
               <form action={cerrarSesion}>
                 <button
                   type="submit"
-                  className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-base text-texto-secundario hover:bg-panel-2 hover:text-rojo"
+                  className="flex w-full items-center gap-2 rounded-lg border border-transparent px-2.5 py-2.5 text-sm text-texto-secundario hover:bg-panel-2 hover:text-rojo"
                 >
-                  <LogOut size={20} className="shrink-0" />
+                  <LogOut size={18} className="shrink-0" />
                   Cerrar sesión
                 </button>
               </form>

@@ -14,7 +14,7 @@ const robotoSlab = Roboto_Slab({
 });
 
 export const metadata: Metadata = {
-  title: "JMF · Centro de Operaciones",
+  title: "CRM JMF",
   description: "Sistema interno de JMF — Detailing, Shop y Classmotor.",
 };
 

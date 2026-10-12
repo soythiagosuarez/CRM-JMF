@@ -20,7 +20,7 @@ export default function LoginPage() {
           <Image src="/brands/detailing.png" alt="JMF" width={220} height={147} className="w-40 sm:w-[220px] h-auto" priority />
           <div className="text-center">
             <p className="font-display text-lg font-semibold text-texto leading-tight">
-              Centro de Operaciones
+              CRM JMF
             </p>
             <p className="text-sm text-texto-secundario">
               Detailing · Shop · Classmotor

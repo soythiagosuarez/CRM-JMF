@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navGroups, configItem, esRutaActiva } from "./nav-items";
@@ -35,10 +36,13 @@ export function Sidebar() {
 
   return (
     <aside className="hidden md:flex md:w-64 md:flex-col shrink-0 border-r border-borde bg-fondo-2 h-full">
-      <div className="flex items-center px-5 h-16 border-b border-borde">
-        <p className="font-display text-base font-semibold text-texto leading-tight">
-          Centro de Operaciones JMF
-        </p>
+      <div className="flex items-center gap-2.5 px-5 h-16 border-b border-borde">
+        <Link href="/" className="flex items-center">
+          <Image src="/brands/detailing-logo.png" alt="CRM JMF Detailing" width={392} height={93} className="h-7 w-auto" priority />
+        </Link>
+        <span className="rounded border border-borde px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-texto-secundario">
+          CRM
+        </span>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-6">
