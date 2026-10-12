@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { SITIOS_WEB_JMF } from "./lib/web-jmf";
 
 const nextConfig: NextConfig = {
   // Indicador de Next.js Dev Tools (la burbuja "N · X Issues" abajo a la
@@ -22,7 +23,7 @@ const nextConfig: NextConfig = {
           {
             key: "Content-Security-Policy",
             // En desarrollo también desde localhost, para probar la web local.
-            value: `frame-ancestors 'self' https://soythiagosuarez.github.io${
+            value: `frame-ancestors 'self' ${SITIOS_WEB_JMF.join(" ")}${
               process.env.NODE_ENV === "production" ? "" : " http://localhost:*"
             }`,
           },

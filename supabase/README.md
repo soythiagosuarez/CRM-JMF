@@ -75,7 +75,7 @@ La web las manda a `/api/consultas` (público, con campo trampa para bots y
 máximo 3 consultas por celular por día) y se gestionan desde **Consultas
 web** en el CRM.
 
-Se aplica igual que las anteriores, después de la 0010. Para aceptar
-consultas desde otro dominio además de soythiagosuarez.github.io (por
-ejemplo uno propio), cargarlo en la variable `CONSULTAS_ORIGENES` de Vercel
-(varios separados por coma).
+Se aplica igual que las anteriores, después de la 0010. Se aceptan
+consultas desde la web de JMF (www.jmfdetailing.com, jmfdetailing.vercel.app
+y GitHub Pages, ver `lib/web-jmf.ts`); para sumar otro dominio, cargarlo en
+la variable `CONSULTAS_ORIGENES` de Vercel (varios separados por coma).

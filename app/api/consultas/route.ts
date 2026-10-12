@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { validarConsultaWeb } from "@/lib/consultas/validar";
+import { SITIOS_WEB_JMF } from "@/lib/web-jmf";
 
 /**
  * Recibe el formulario de Contacto de la web de JMF Detailing (GitHub
@@ -10,10 +11,10 @@ import { validarConsultaWeb } from "@/lib/consultas/validar";
  * por conexión.
  */
 
-/** Sitios que pueden mandar consultas. Se suman otros con la variable
- * CONSULTAS_ORIGENES (separados por coma), ej. un dominio propio. */
+/** Sitios que pueden mandar consultas: la web de JMF (ver lib/web-jmf.ts)
+ * y los que se sumen con la variable CONSULTAS_ORIGENES (separados por coma). */
 const ORIGENES_PERMITIDOS = [
-  "https://soythiagosuarez.github.io",
+  ...SITIOS_WEB_JMF,
   ...(process.env.CONSULTAS_ORIGENES ?? "")
     .split(",")
     .map((o) => o.trim())
