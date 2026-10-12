@@ -35,7 +35,8 @@ export interface EstadoReserva {
   vehiculo: VehiculoForm;
   items: ItemReserva[];
   fecha: string | null;
-  franja: string | null;
+  /** Horario de ingreso elegido, "HH:MM". */
+  hora: string | null;
   puertaAPuerta: boolean;
   canal: CanalReserva | "";
   aceptaPromos: boolean;
@@ -51,23 +52,48 @@ export const ESTADO_INICIAL: EstadoReserva = {
   vehiculo: { marca: "", modelo: "", anio: "", patente: "", color: "", tamano: "", condicion: "" },
   items: [],
   fecha: null,
-  franja: null,
+  hora: null,
   puertaAPuerta: false,
   canal: "",
   aceptaPromos: false,
 };
 
+/** Orden tipo Calendly: qué servicio, cuándo, quién es y confirmar. */
 export const PASOS = [
-  { id: "cliente", label: "Vos" },
-  { id: "auto", label: "Tu auto" },
-  { id: "servicios", label: "Servicios" },
+  { id: "servicios", label: "Servicio" },
   { id: "fecha", label: "Día y hora" },
+  { id: "datos", label: "Tus datos" },
   { id: "confirmar", label: "Confirmar" },
 ] as const;
 
 export type IdPaso = (typeof PASOS)[number]["id"];
 
 export const telefonoValido = (t: string) => normalizarTelefono(t).length === 10;
+
+function validarCliente(e: EstadoReserva): string | null {
+  if (!e.modo) return "Contanos si ya viniste a JMF o si es tu primera vez.";
+  if (!telefonoValido(e.telefono)) {
+    return "Revisá el celular: código de área sin el 0 y número sin el 15 (ej. 11 6972 8834).";
+  }
+  if (e.modo === "actual" && e.busqueda.estado !== "encontrado") return "Buscá tus datos con tu celular.";
+  if (e.modo === "nuevo" && e.nombre.trim().length < 3) return "Completá tu nombre y apellido.";
+  if (e.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.email.trim())) return "Revisá el email.";
+  return null;
+}
+
+function validarAuto(e: EstadoReserva): string | null {
+  if (e.vehiculoId) return null;
+  const v = e.vehiculo;
+  if (!v.marca.trim() || !v.modelo.trim()) return "Completá marca y modelo de tu auto.";
+  const anio = Number(v.anio);
+  if (!Number.isInteger(anio) || anio < 1950 || anio > new Date().getFullYear() + 1) return "Revisá el año del auto.";
+  const patente = normalizarPatente(v.patente);
+  if (patente.length < 5 || patente.length > 8) return "Revisá la patente del auto.";
+  if (!v.color.trim()) return "Completá el color del auto.";
+  if (!v.tamano) return "Elegí el tamaño del auto.";
+  if (!v.condicion) return "Contanos si el auto es 0 km o usado.";
+  return null;
+}
 
 /** Devuelve qué falta para pasar al siguiente paso (o null si está completo). */
 export function validarPaso(
@@ -76,31 +102,6 @@ export function validarPaso(
   servicios: ServicioPublico[],
   disponibilidad: Map<string, ResultadoDia> | null
 ): string | null {
-  if (paso === "cliente") {
-    if (!e.modo) return "Contanos si ya viniste a JMF o si es tu primera vez.";
-    if (!telefonoValido(e.telefono)) {
-      return "Revisá el celular: código de área sin el 0 y número sin el 15 (ej. 11 6972 8834).";
-    }
-    if (e.modo === "actual" && e.busqueda.estado !== "encontrado") return "Buscá tus datos con tu celular.";
-    if (e.modo === "nuevo" && e.nombre.trim().length < 3) return "Completá tu nombre y apellido.";
-    if (e.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.email.trim())) return "Revisá el email.";
-    return null;
-  }
-
-  if (paso === "auto") {
-    if (e.vehiculoId) return null;
-    const v = e.vehiculo;
-    if (!v.marca.trim() || !v.modelo.trim()) return "Completá marca y modelo.";
-    const anio = Number(v.anio);
-    if (!Number.isInteger(anio) || anio < 1950 || anio > new Date().getFullYear() + 1) return "Revisá el año.";
-    const patente = normalizarPatente(v.patente);
-    if (patente.length < 5 || patente.length > 8) return "Revisá la patente.";
-    if (!v.color.trim()) return "Completá el color.";
-    if (!v.tamano) return "Elegí el tamaño del auto.";
-    if (!v.condicion) return "Contanos si es 0 km o usado.";
-    return null;
-  }
-
   if (paso === "servicios") {
     if (e.items.length === 0) return "Elegí al menos un servicio.";
     for (const item of e.items) {
@@ -114,9 +115,11 @@ export function validarPaso(
     if (!e.fecha) return "Elegí el día en que dejás el auto.";
     const dia = disponibilidad?.get(e.fecha);
     if (!dia?.disponible) return "Ese día ya no está disponible. Elegí otro.";
-    if (!e.franja || !dia.franjas.some((f) => f.desde === e.franja)) return "Elegí la franja horaria.";
+    if (!e.hora || !dia.horarios.includes(e.hora)) return "Elegí el horario en que dejás el auto.";
     return null;
   }
+
+  if (paso === "datos") return validarCliente(e) ?? validarAuto(e);
 
   if (!e.canal) return "Contanos cómo nos conociste.";
   return null;
@@ -143,7 +146,7 @@ export function armarInput(e: EstadoReserva): ReservaInput {
         },
     items: e.items,
     fecha: e.fecha ?? "",
-    franja_desde: e.franja ?? "",
+    hora: e.hora ?? "",
     puerta_a_puerta: e.puertaAPuerta,
     canal: e.canal as CanalReserva,
     acepta_promos: e.aceptaPromos,

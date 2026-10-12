@@ -5,18 +5,19 @@ import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { crearReserva } from "@/app/reservar/actions";
 import { calcularDisponibilidad, type ContextoAgenda } from "@/lib/reservas/disponibilidad";
 import type { DatosAgendaPublica, ItemReserva, ReservaConfirmada } from "@/lib/types/reserva";
-import { PasoCliente } from "./PasoCliente";
-import { PasoAuto } from "./PasoAuto";
+import { textoPrecioTotal } from "@/lib/reservas/precios";
+import { PasoDatos } from "./PasoDatos";
 import { PasoServicios } from "./PasoServicios";
 import { PasoFecha } from "./PasoFecha";
 import { PasoConfirmar } from "./PasoConfirmar";
 import { ReservaExito } from "./ReservaExito";
+import { ResumenLateral } from "./ResumenLateral";
 import { Aviso } from "./ui";
 import { ESTADO_INICIAL, PASOS, armarInput, validarPaso, type EstadoReserva } from "./estado";
 
 /**
- * Flujo de la agenda online (relevamiento con Joaco):
- * cliente nuevo/actual → auto → servicios → día y franja → confirmar →
+ * Flujo de la agenda online, con la lógica de Calendly:
+ * servicios → día y horario → tus datos y tu auto → confirmar →
  * pantalla de turno agendado con aviso por WhatsApp.
  */
 export function ReservaFlujo({ datos, embebida }: { datos: DatosAgendaPublica; embebida: boolean }) {
@@ -56,8 +57,8 @@ export function ReservaFlujo({ datos, embebida }: { datos: DatosAgendaPublica; e
     setEstado((e) => {
       if (!e.fecha) return { ...e, items };
       const dia = items.length > 0 ? calcularDisponibilidad(items, ctx).get(e.fecha) : undefined;
-      const sigue = dia?.disponible && dia.franjas.some((f) => f.desde === e.franja);
-      return sigue ? { ...e, items } : { ...e, items, fecha: null, franja: null };
+      if (!dia?.disponible) return { ...e, items, fecha: null, hora: null };
+      return { ...e, items, hora: e.hora && dia.horarios.includes(e.hora) ? e.hora : null };
     });
   };
 
@@ -116,20 +117,46 @@ export function ReservaFlujo({ datos, embebida }: { datos: DatosAgendaPublica; e
 
   if (confirmada) {
     return (
-      <div ref={inicioRef} className="rounded-2xl border border-borde bg-panel/60 p-4 sm:p-6 scroll-mt-4">
+      <div
+        ref={inicioRef}
+        className="mx-auto w-full max-w-2xl rounded-2xl border border-borde bg-panel/60 p-4 sm:p-6 scroll-mt-4"
+      >
         <ReservaExito reserva={confirmada} config={datos.config} />
       </div>
     );
   }
 
   const diaElegido = estado.fecha ? disponibilidad?.get(estado.fecha) : undefined;
-  const franjaElegida =
-    diaElegido?.disponible ? (diaElegido.franjas.find((f) => f.desde === estado.franja) ?? null) : null;
+  const fechaListo = diaElegido?.disponible ? diaElegido.fin : null;
   const esUltimo = indicePaso === PASOS.length - 1;
+  const cantidadElegidos = estado.items.length;
+
+  const botonSiguiente = (
+    <button
+      type="button"
+      onClick={esUltimo ? confirmar : siguiente}
+      disabled={enviando}
+      className="inline-flex items-center justify-center gap-2 rounded-xl bg-rojo px-6 py-3 text-sm font-semibold text-white hover:brightness-110 disabled:opacity-60"
+    >
+      {enviando ? (
+        <>
+          <Loader2 size={16} className="animate-spin" />
+          Reservando…
+        </>
+      ) : esUltimo ? (
+        "Confirmar reserva"
+      ) : (
+        <>
+          Siguiente
+          <ArrowRight size={16} />
+        </>
+      )}
+    </button>
+  );
 
   return (
     <div ref={inicioRef} className="flex flex-col gap-5 scroll-mt-4">
-      <ol className="grid grid-cols-5 gap-1.5" aria-label="Pasos de la reserva">
+      <ol className="mx-auto grid w-full max-w-xl grid-cols-4 gap-1.5" aria-label="Pasos de la reserva">
         {PASOS.map((p, i) => {
           const hecho = i < indicePaso;
           const actual = i === indicePaso;
@@ -158,64 +185,78 @@ export function ReservaFlujo({ datos, embebida }: { datos: DatosAgendaPublica; e
         })}
       </ol>
 
-      <div className="rounded-2xl border border-borde bg-panel/60 p-4 sm:p-6">
-        {paso === "cliente" && <PasoCliente estado={estado} actualizar={actualizar} />}
-        {paso === "auto" && <PasoAuto estado={estado} actualizar={actualizar} />}
-        {paso === "servicios" && (
-          <PasoServicios servicios={datos.servicios} items={estado.items} cambiarItems={cambiarItems} />
-        )}
-        {paso === "fecha" && (
-          <PasoFecha datos={datos} estado={estado} disponibilidad={disponibilidad} actualizar={actualizar} />
-        )}
-        {paso === "confirmar" && (
-          <PasoConfirmar
+      {paso === "servicios" ? (
+        <div className="rounded-2xl border border-borde bg-panel/60">
+          <div className="p-4 sm:p-6">
+            <PasoServicios servicios={datos.servicios} items={estado.items} cambiarItems={cambiarItems} />
+          </div>
+          {/* Barra fija abajo: siempre a mano el total y «Siguiente». */}
+          <div className="sticky bottom-0 z-10 flex flex-col gap-3 rounded-b-2xl border-t border-borde bg-fondo-2/95 p-4 backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            {error ? (
+              <p role="alert" className="text-sm text-rojo">
+                {error}
+              </p>
+            ) : cantidadElegidos > 0 ? (
+              <p className="text-sm text-texto-secundario">
+                {cantidadElegidos === 1 ? "1 servicio" : `${cantidadElegidos} servicios`} ·{" "}
+                <span className="font-semibold text-texto tabular-nums">
+                  {textoPrecioTotal(datos.servicios, estado.items)}
+                </span>
+              </p>
+            ) : (
+              <p className="text-sm text-texto-secundario">Elegí el servicio que querés hacerle a tu auto.</p>
+            )}
+            {botonSiguiente}
+          </div>
+        </div>
+      ) : (
+        <div className="grid overflow-hidden rounded-2xl border border-borde bg-panel/60 lg:grid-cols-[minmax(260px,320px)_1fr]">
+          <ResumenLateral
             datos={datos}
             estado={estado}
-            franja={franjaElegida}
-            fechaListo={diaElegido?.disponible ? diaElegido.fin : null}
-            actualizar={actualizar}
-            embebida={embebida}
+            fechaListo={fechaListo}
+            onVolver={() => volverA(indicePaso - 1)}
           />
-        )}
-      </div>
+          <div className="flex min-w-0 flex-col gap-5 p-4 sm:p-6">
+            {paso === "fecha" && (
+              <PasoFecha
+                datos={datos}
+                estado={estado}
+                disponibilidad={disponibilidad}
+                actualizar={actualizar}
+                onSiguiente={siguiente}
+              />
+            )}
+            {paso === "datos" && <PasoDatos estado={estado} actualizar={actualizar} />}
+            {paso === "confirmar" && (
+              <PasoConfirmar
+                datos={datos}
+                estado={estado}
+                fechaListo={fechaListo}
+                actualizar={actualizar}
+                embebida={embebida}
+              />
+            )}
 
-      {error && <Aviso tono="error">{error}</Aviso>}
+            {error && <Aviso tono="error">{error}</Aviso>}
 
-      <div className="flex items-center justify-between gap-3">
-        {indicePaso > 0 ? (
-          <button
-            type="button"
-            onClick={() => volverA(indicePaso - 1)}
-            disabled={enviando}
-            className="inline-flex items-center gap-2 rounded-xl border border-borde px-4 py-3 text-sm text-texto-secundario hover:text-texto disabled:opacity-50"
-          >
-            <ArrowLeft size={16} />
-            Atrás
-          </button>
-        ) : (
-          <span />
-        )}
-        <button
-          type="button"
-          onClick={esUltimo ? confirmar : siguiente}
-          disabled={enviando}
-          className="inline-flex items-center gap-2 rounded-xl bg-rojo px-6 py-3 text-sm font-semibold text-white hover:brightness-110 disabled:opacity-60"
-        >
-          {enviando ? (
-            <>
-              <Loader2 size={16} className="animate-spin" />
-              Reservando…
-            </>
-          ) : esUltimo ? (
-            "Confirmar reserva"
-          ) : (
-            <>
-              Siguiente
-              <ArrowRight size={16} />
-            </>
-          )}
-        </button>
-      </div>
+            {paso !== "fecha" && (
+              <div className="flex flex-col-reverse gap-3 border-t border-borde pt-5 sm:flex-row sm:items-center sm:justify-between">
+                <button
+                  type="button"
+                  onClick={() => volverA(indicePaso - 1)}
+                  disabled={enviando}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-borde px-4 py-3 text-sm text-texto-secundario hover:text-texto disabled:opacity-50"
+                >
+                  <ArrowLeft size={16} />
+                  Atrás
+                </button>
+                {botonSiguiente}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

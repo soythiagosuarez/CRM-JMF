@@ -126,7 +126,7 @@ export function PasoCliente({
               {busqueda.vehiculos.length > 0
                 ? ` y ${busqueda.vehiculos.length === 1 ? "tu auto" : `tus ${busqueda.vehiculos.length} autos`}.`
                 : "."}{" "}
-              Tocá «Siguiente» para seguir.
+              Elegí abajo qué auto traés.
             </Aviso>
           )}
         </div>

@@ -4,7 +4,8 @@
  * volver a validar al confirmar, por si alguien reservó en el medio).
  *
  * Reglas (relevamiento de Joaco):
- * - El cliente elige día y franja de ingreso; se le dice cuándo estaría listo.
+ * - El cliente elige día y horario de ingreso (cada 1 hora dentro de las
+ *   franjas del día, como en Calendly); se le dice cuándo estaría listo.
  * - Entran 5 autos a la vez en el taller: un auto ocupa lugar todos los
  *   días entre que entra y que está listo.
  * - Cada servicio puede tener un tope por día y/o por semana (lunes a
@@ -175,8 +176,35 @@ export interface ContextoAgenda {
 }
 
 export type ResultadoDia =
-  | { disponible: true; franjas: Franja[]; fin: string }
+  | { disponible: true; franjas: Franja[]; horarios: string[]; fin: string }
   | { disponible: false; motivo: string };
+
+/** Cada cuánto se ofrece un horario de ingreso dentro de una franja. */
+export const INTERVALO_HORARIOS_MIN = 60;
+
+const aMinutos = (hora: string) => {
+  const [h, m] = hora.slice(0, 5).split(":").map(Number);
+  return h * 60 + m;
+};
+const aHora = (minutos: number) =>
+  `${String(Math.floor(minutos / 60)).padStart(2, "0")}:${String(minutos % 60).padStart(2, "0")}`;
+
+/**
+ * Horarios en los que se puede dejar el auto: cada hora desde que abre la
+ * franja hasta una hora antes de que cierre (9 a 13 → 9, 10, 11 y 12).
+ * Con `despuesDe` se sacan los que ya pasaron (reservas para hoy).
+ */
+export function horariosDeFranjas(franjas: Franja[], despuesDe?: string): string[] {
+  const horarios: string[] = [];
+  for (const f of franjas) {
+    const fin = aMinutos(f.hasta);
+    for (let t = aMinutos(f.desde); t + INTERVALO_HORARIOS_MIN <= fin; t += INTERVALO_HORARIOS_MIN) {
+      const hora = aHora(t);
+      if (!despuesDe || hora > despuesDe.slice(0, 5)) horarios.push(hora);
+    }
+  }
+  return [...new Set(horarios)].sort();
+}
 
 export function rangoReservable(ctx: Pick<ContextoAgenda, "hoy" | "config">): {
   desde: string;
@@ -204,7 +232,8 @@ export function evaluarDia(
   if (fecha === ctx.hoy && ctx.horaActual) {
     franjas = franjas.filter((f) => f.hasta.slice(0, 5) > ctx.horaActual!);
   }
-  if (franjas.length === 0) return { disponible: false, motivo: "El taller no recibe autos ese día" };
+  const horarios = horariosDeFranjas(franjas, fecha === ctx.hoy ? ctx.horaActual : undefined);
+  if (horarios.length === 0) return { disponible: false, motivo: "El taller no recibe autos ese día" };
 
   for (const item of items) {
     const servicio = ctx.servicios.find((s) => s.id === item.servicio_id);
@@ -225,7 +254,7 @@ export function evaluarDia(
     }
   }
 
-  return { disponible: true, franjas, fin: dias.at(-1) ?? fecha };
+  return { disponible: true, franjas, horarios, fin: dias.at(-1) ?? fecha };
 }
 
 /** Disponibilidad de todo el rango reservable, día por día. */
@@ -244,18 +273,19 @@ export function calcularDisponibilidad(
   return resultado;
 }
 
-/** Validación final al confirmar (servidor). */
-export function validarFranja(
+/** Validación final al confirmar (servidor): el día y el horario
+ * elegidos siguen libres para estos servicios. */
+export function validarHorario(
   fecha: string,
-  franjaDesde: string,
+  hora: string,
   items: ItemReserva[],
   ctx: ContextoAgenda
-): { ok: true; franja: Franja; fin: string } | { ok: false; error: string } {
+): { ok: true; hora: string; fin: string } | { ok: false; error: string } {
   const dia = evaluarDia(fecha, items, ctx);
   if (!dia.disponible) {
     return { ok: false, error: `Ese día ya no está disponible (${dia.motivo.toLowerCase()}). Elegí otro, por favor.` };
   }
-  const franja = dia.franjas.find((f) => f.desde.slice(0, 5) === franjaDesde.slice(0, 5));
-  if (!franja) return { ok: false, error: "Esa franja ya no está disponible. Elegí otra, por favor." };
-  return { ok: true, franja, fin: dia.fin };
+  const elegido = hora.slice(0, 5);
+  if (!dia.horarios.includes(elegido)) return { ok: false, error: "Ese horario ya no está disponible. Elegí otro, por favor." };
+  return { ok: true, hora: elegido, fin: dia.fin };
 }

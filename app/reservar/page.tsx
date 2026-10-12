@@ -43,8 +43,12 @@ export default async function ReservarPage({
   }
 
   return (
-    <div className={`w-full ${embebida ? "px-3 py-4" : "px-4 py-8 sm:py-12"}`}>
-      <div className="mx-auto w-full max-w-2xl flex flex-col gap-6">
+    <div
+      className={`flex w-full flex-1 flex-col ${
+        embebida ? "px-3 py-4" : "min-h-dvh px-4 pt-8 sm:pt-12 md:px-[120px]"
+      }`}
+    >
+      <div className="flex w-full flex-1 flex-col gap-6">
         {!embebida && (
           <header className="flex flex-col items-center gap-3 text-center">
             <Image src="/brands/detailing.png" alt="JMF Detailing" width={150} height={100} priority />
@@ -62,7 +66,7 @@ export default async function ReservarPage({
         {datos && datos.servicios.length > 0 ? (
           <ReservaFlujo datos={datos} embebida={embebida} />
         ) : (
-          <div className="rounded-xl border border-borde bg-panel p-6 text-center flex flex-col gap-2">
+          <div className="mx-auto w-full max-w-2xl rounded-xl border border-borde bg-panel p-6 text-center flex flex-col gap-2">
             <p className="text-texto">La agenda online no está disponible en este momento.</p>
             <p className="text-sm text-texto-secundario">
               Escribinos por WhatsApp al{" "}
@@ -78,16 +82,18 @@ export default async function ReservarPage({
             </p>
           </div>
         )}
-
-        {!embebida && (
-          <footer className="text-center text-xs text-texto-secundario">
-            JMF Detailing · {datos?.config.direccion ?? CONFIG_RESERVAS_DEFAULT.direccion} ·{" "}
-            <Link href="/reservar/privacidad" className="hover:text-texto underline underline-offset-2">
-              Privacidad
-            </Link>
-          </footer>
-        )}
       </div>
+
+      {/* Siempre al pie de la pantalla, a 60px del borde: no se mueve
+          con los botones ni con el largo de cada paso. */}
+      {!embebida && (
+        <footer className="mt-10 mb-[60px] text-center text-xs text-texto-secundario">
+          JMF Detailing · {datos?.config.direccion ?? CONFIG_RESERVAS_DEFAULT.direccion} ·{" "}
+          <Link href="/reservar/privacidad" className="hover:text-texto underline underline-offset-2">
+            Privacidad
+          </Link>
+        </footer>
+      )}
     </div>
   );
 }
