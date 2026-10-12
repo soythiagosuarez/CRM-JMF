@@ -41,7 +41,7 @@ export function Kpi({ etiqueta, valor, detalle, tono = "neutro", icono, enlace }
           icono && <span className="text-texto-secundario">{icono}</span>
         )}
       </div>
-      <span className={`font-display text-2xl font-semibold ${tonoColor[tono]}`}>
+      <span className={`font-display text-xl sm:text-2xl font-semibold ${tonoColor[tono]}`}>
         {valor}
       </span>
       {detalle && <span className="text-xs text-texto-secundario">{detalle}</span>}

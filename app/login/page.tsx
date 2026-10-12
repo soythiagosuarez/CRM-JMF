@@ -14,10 +14,10 @@ export default function LoginPage() {
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-fondo px-4">
+    <div className="min-h-dvh flex items-center justify-center bg-fondo px-6 py-10">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center gap-3 mb-8">
-          <Image src="/brands/detailing.png" alt="JMF" width={220} height={147} />
+          <Image src="/brands/detailing.png" alt="JMF" width={220} height={147} className="w-40 sm:w-[220px] h-auto" priority />
           <div className="text-center">
             <p className="font-display text-lg font-semibold text-texto leading-tight">
               Centro de Operaciones
@@ -30,7 +30,7 @@ export default function LoginPage() {
 
         <form
           action={formAction}
-          className="flex flex-col gap-4 rounded-xl border border-borde bg-panel p-6"
+          className="flex flex-col gap-4 rounded-xl border border-borde bg-panel p-5 sm:p-6"
         >
           <div className="flex flex-col gap-1.5">
             <label htmlFor="email" className="text-sm text-texto-secundario">
@@ -42,7 +42,7 @@ export default function LoginPage() {
               type="email"
               autoComplete="username"
               required
-              className="rounded-lg border border-borde bg-fondo-2 px-3 py-2 text-sm text-texto outline-none focus-visible:border-rojo"
+              className="campo py-2.5"
             />
           </div>
 
@@ -59,7 +59,7 @@ export default function LoginPage() {
               type="password"
               autoComplete="current-password"
               required
-              className="rounded-lg border border-borde bg-fondo-2 px-3 py-2 text-sm text-texto outline-none focus-visible:border-rojo"
+              className="campo py-2.5"
             />
           </div>
 
@@ -69,7 +69,7 @@ export default function LoginPage() {
             </p>
           )}
 
-          <Button type="submit" disabled={enviando} className="mt-2 w-full">
+          <Button type="submit" disabled={enviando} className="mt-2 w-full py-2.5">
             {enviando ? "Entrando..." : "Entrar"}
           </Button>
         </form>

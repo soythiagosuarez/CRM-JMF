@@ -74,11 +74,11 @@ export function FidelizacionCard({
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div className="rounded-lg border border-dorado/30 bg-dorado/10 p-3">
           <p className="text-xs text-texto-secundario">Puntos</p>
-          <p className="font-display text-2xl font-semibold text-dorado tabular-nums">{resumen.saldo}</p>
+          <p className="font-display text-xl sm:text-2xl font-semibold text-dorado tabular-nums">{resumen.saldo}</p>
         </div>
         <div className="rounded-lg border border-borde bg-panel-2 p-3">
           <p className="text-xs text-texto-secundario">Total gastado</p>
-          <p className="font-display text-2xl font-semibold text-texto tabular-nums">
+          <p className="font-display text-xl sm:text-2xl font-semibold text-texto tabular-nums">
             <Monto valor={resumen.total_gastado} />
           </p>
         </div>

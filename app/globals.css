@@ -40,6 +40,12 @@
   --font-sans: var(--font-inter);
 }
 
+html,
+body {
+  /* Nunca scroll lateral: en mobile todo se apila en vertical. */
+  overflow-x: clip;
+}
+
 body {
   background: var(--jmf-negro);
   color: var(--jmf-blanco);
@@ -97,6 +103,15 @@ input[type="radio"],
     font-size: 0.875rem;
     color: var(--jmf-blanco);
     outline: none;
+    min-width: 0;
+  }
+
+  /* En celulares los campos van a 16px: con menos, iPhone hace zoom al
+     tocarlos y la pantalla queda corrida de costado. */
+  @media (max-width: 639px) {
+    .campo {
+      font-size: 1rem;
+    }
   }
 
   .campo:focus-visible {
@@ -125,6 +140,15 @@ input[type="radio"],
 button[aria-label],
 a[aria-label] {
   position: relative;
+}
+
+/* En pantallas táctiles no hay hover: sin tooltip (además, al estar
+   pegados al borde ensanchaban la página y aparecía scroll lateral). */
+@media (hover: none) {
+  button[aria-label]::after,
+  a[aria-label]::after {
+    display: none;
+  }
 }
 
 button[aria-label]::after,

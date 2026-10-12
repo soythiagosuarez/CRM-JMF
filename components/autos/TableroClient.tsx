@@ -119,11 +119,11 @@ export function TableroClient({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Image src="/brands/detailing.png" alt="" width={44} height={44} />
+          <Image src="/brands/detailing.png" alt="" width={44} height={44} className="hidden sm:block shrink-0" />
           <div>
-            <h1 className="font-display text-2xl font-semibold text-texto">Gestión Detailing</h1>
+            <h1 className="font-display text-xl sm:text-2xl font-semibold text-texto">Gestión Detailing</h1>
             <p className="text-sm text-texto-secundario mt-1">
               Tablero de fases. Arrastrá las tarjetas para avanzar un auto — no se puede volver
               para atrás.

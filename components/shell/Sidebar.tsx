@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { navGroups, configItem } from "./nav-items";
+import { navGroups, configItem, esRutaActiva } from "./nav-items";
 
 function ItemLink({
   href,
@@ -54,7 +54,7 @@ export function Sidebar() {
                   href={item.href}
                   label={item.label}
                   Icon={item.icon}
-                  activo={pathname === item.href}
+                  activo={esRutaActiva(pathname, item.href)}
                 />
               ))}
             </div>
@@ -67,7 +67,7 @@ export function Sidebar() {
           href={configItem.href}
           label={configItem.label}
           Icon={configItem.icon}
-          activo={pathname === configItem.href}
+          activo={esRutaActiva(pathname, configItem.href)}
         />
       </div>
     </aside>
