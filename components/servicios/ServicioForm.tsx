@@ -183,6 +183,35 @@ export function ServicioForm({
           </Campo>
         </div>
 
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <Campo
+            label="Se reserva con"
+            htmlFor="anticipacion_valor"
+            ayuda="Anticipación mínima. Vacío = la general de Config"
+          >
+            <input
+              id="anticipacion_valor"
+              name="anticipacion_valor"
+              type="number"
+              min="0"
+              step="1"
+              defaultValue={servicio?.anticipacion_valor ?? ""}
+              className="campo"
+            />
+          </Campo>
+          <Campo label="Unidad" htmlFor="anticipacion_unidad" ayuda="Horas = se puede reservar en el día">
+            <select
+              id="anticipacion_unidad"
+              name="anticipacion_unidad"
+              defaultValue={servicio?.anticipacion_unidad ?? "dias"}
+              className="campo"
+            >
+              <option value="horas">Horas de anticipación</option>
+              <option value="dias">Días de anticipación</option>
+            </select>
+          </Campo>
+        </div>
+
         {filas.length === 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Campo label="Precio desde" htmlFor="precio_referencia">

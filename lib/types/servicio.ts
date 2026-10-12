@@ -44,6 +44,10 @@ export interface Servicio {
   duracion_unidad: UnidadDuracion | null;
   limite_dia: number | null;
   limite_semana: number | null;
+  /** Con cuánta anticipación se reserva online (ej. 2 horas, 1 día).
+   * null = la anticipación general de Config. */
+  anticipacion_valor: number | null;
+  anticipacion_unidad: UnidadDuracion | null;
   categoria_fidelizacion: CategoriaFidelizacion;
   created_at: string;
   updated_at: string;
@@ -66,6 +70,8 @@ export interface ServicioInput {
   duracion_unidad: UnidadDuracion | null;
   limite_dia: number | null;
   limite_semana: number | null;
+  anticipacion_valor: number | null;
+  anticipacion_unidad: UnidadDuracion | null;
   categoria_fidelizacion: CategoriaFidelizacion;
 }
 
@@ -74,3 +80,9 @@ export const RESERVA_ONLINE_LABEL: Record<ReservaOnline, string> = {
   consulta: "Online, a confirmar",
   no: "No se reserva online",
 };
+
+/** "2 horas", "1 día" */
+export function textoAnticipacion(valor: number, unidad: UnidadDuracion): string {
+  if (unidad === "horas") return `${valor} ${valor === 1 ? "hora" : "horas"}`;
+  return `${valor} ${valor === 1 ? "día" : "días"}`;
+}

@@ -12,8 +12,22 @@ import { normalizarVariantes } from "./catalogo";
  * la semana en curso y un servicio largo que arrancó antes de hoy. */
 const DIAS_HACIA_ATRAS = 21;
 
-const CAMPOS_SERVICIO_PUBLICO =
+const CAMPOS_SERVICIO_BASE =
   "id, nombre, descripcion, reserva_online, moneda, variantes, precio_referencia, precio_hasta, duracion_valor, duracion_unidad, limite_dia, limite_semana, activo";
+const CAMPOS_SERVICIO_PUBLICO = `${CAMPOS_SERVICIO_BASE}, anticipacion_valor, anticipacion_unidad`;
+
+/**
+ * Servicios para la agenda. Si todavía no se corrió la migración 0010
+ * (anticipación por servicio), se leen sin esas columnas y se usa la
+ * anticipación general: la agenda no se cae por el orden del deploy.
+ */
+async function cargarServicios(supabase: SupabaseClient) {
+  const r = await supabase.from("servicios").select(CAMPOS_SERVICIO_PUBLICO).order("nombre", { ascending: true });
+  if (r.error?.code === "42703" || /anticipacion_/.test(r.error?.message ?? "")) {
+    return supabase.from("servicios").select(CAMPOS_SERVICIO_BASE).order("nombre", { ascending: true });
+  }
+  return r;
+}
 
 function aServicioPublico(fila: Record<string, unknown>): ServicioPublico {
   const s = fila as unknown as Servicio;
@@ -30,6 +44,9 @@ function aServicioPublico(fila: Record<string, unknown>): ServicioPublico {
     duracion_unidad: s.duracion_unidad,
     limite_dia: s.limite_dia,
     limite_semana: s.limite_semana,
+    anticipacion_valor: s.anticipacion_valor != null ? Number(s.anticipacion_valor) : null,
+    anticipacion_unidad:
+      s.anticipacion_valor != null ? (s.anticipacion_unidad === "horas" ? "horas" : "dias") : null,
   };
 }
 
@@ -145,7 +162,7 @@ export async function obtenerContextoAgenda(
   const [{ data: config, error: errorConfig }, { data: servicios, error: errorServicios }, bloqueos] =
     await Promise.all([
       supabase.from("configuracion").select("reservas").eq("id", "global").single(),
-      supabase.from("servicios").select(CAMPOS_SERVICIO_PUBLICO).order("nombre", { ascending: true }),
+      cargarServicios(supabase),
       cargarBloqueos(supabase, hoy),
     ]);
   if (errorConfig) throw new Error("No se pudo cargar la configuración: " + errorConfig.message);
@@ -179,7 +196,7 @@ export async function calcularFinTurno(
   const hoy = hoyArgentina();
   const [{ data: config }, { data: servicios }, bloqueos] = await Promise.all([
     supabase.from("configuracion").select("reservas").eq("id", "global").single(),
-    supabase.from("servicios").select(CAMPOS_SERVICIO_PUBLICO),
+    cargarServicios(supabase),
     cargarBloqueos(supabase, hoy),
   ]);
   const configReservas = normalizarConfigReservas(config?.reservas);

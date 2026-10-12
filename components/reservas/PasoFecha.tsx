@@ -62,8 +62,12 @@ export function PasoFecha({
   const elegirDia = (fecha: string) => {
     const r = disponibilidad?.get(fecha);
     if (!r?.disponible) return;
-    const hora = estado.hora && r.horarios.includes(estado.hora) ? estado.hora : null;
-    actualizar({ fecha, hora });
+    // Tocar el día elegido lo deselecciona; cambiar de día borra el horario.
+    if (fecha === estado.fecha) {
+      actualizar({ fecha: null, hora: null });
+      return;
+    }
+    actualizar({ fecha, hora: null });
     // En el celular los horarios quedan abajo del calendario: los mostramos.
     if (window.matchMedia("(max-width: 639px)").matches) {
       requestAnimationFrame(() => horariosRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
@@ -82,7 +86,7 @@ export function PasoFecha({
       )}
 
       <div className="flex flex-col sm:flex-row gap-6">
-        <div className="w-full sm:max-w-sm sm:flex-1">
+        <div className="w-full sm:w-[22rem] sm:shrink-0">
           <div className="mb-3 flex items-center justify-between gap-3">
             <span className="font-medium text-texto capitalize">{nombreMes(`${mes}-01`)}</span>
             <span className="flex items-center gap-1">
@@ -191,15 +195,21 @@ export function PasoFecha({
         </div>
 
         {diaElegido && estado.fecha && (
-          <div ref={horariosRef} className="w-full sm:w-52 lg:w-56 shrink-0 scroll-mt-4">
+          <div ref={horariosRef} className="w-full sm:w-56 shrink-0 scroll-mt-4">
             <p className="mb-3 font-medium text-texto first-letter:uppercase">{fechaLarga(estado.fecha)}</p>
-            <div className="flex flex-col gap-2 sm:max-h-[26rem] sm:overflow-y-auto sm:pr-1">
+            <div className="flex flex-col gap-2 sm:max-h-[28rem] sm:overflow-y-auto sm:pr-1">
               {diaElegido.horarios.map((h) =>
                 estado.hora === h ? (
                   <div key={h} className="grid grid-cols-2 gap-2">
-                    <span className="flex items-center justify-center rounded-lg bg-texto-secundario/80 py-3 text-sm font-semibold text-fondo tabular-nums">
+                    {/* Tocarlo de nuevo lo deselecciona. */}
+                    <button
+                      type="button"
+                      onClick={() => actualizar({ hora: null })}
+                      aria-pressed
+                      className="flex items-center justify-center rounded-lg bg-texto-secundario/80 py-3 text-sm font-semibold text-fondo tabular-nums hover:bg-texto-secundario"
+                    >
                       {horaCorta(h)}
-                    </span>
+                    </button>
                     <button
                       type="button"
                       onClick={onSiguiente}

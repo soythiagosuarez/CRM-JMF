@@ -52,3 +52,15 @@ SUPABASE_SERVICE_ROLE_KEY=...   # Supabase → Project Settings → API → serv
 Cargala en Vercel (Settings → Environment Variables) y en `.env.local` para
 desarrollo. **No** lleva el prefijo `NEXT_PUBLIC_`: nunca tiene que llegar
 al navegador.
+
+## Anticipación por servicio (migración 0010)
+
+`migrations/0010_anticipacion_por_servicio.sql` agrega a cada servicio con
+cuánta anticipación se reserva online (`anticipacion_valor` +
+`anticipacion_unidad`: horas o días). Carga 2 horas para lavado premium,
+limpieza de interior, limpieza de motor, llantas y ópticas (se pueden
+reservar en el día) y 1 día para el resto. Después se edita desde
+Servicios en el CRM.
+
+Se aplica igual que las anteriores, después de la 0009. Mientras no se
+corra, la agenda sigue andando con la anticipación general de Config.

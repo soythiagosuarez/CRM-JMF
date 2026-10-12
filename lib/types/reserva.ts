@@ -20,6 +20,8 @@ export type ServicioPublico = Pick<
   | "duracion_unidad"
   | "limite_dia"
   | "limite_semana"
+  | "anticipacion_valor"
+  | "anticipacion_unidad"
 >;
 
 /** Un servicio elegido en la reserva. `variante` es el índice dentro de
@@ -54,6 +56,8 @@ export interface Bloqueo {
 /** Todo lo que la página pública necesita para calcular disponibilidad. */
 export interface DatosAgendaPublica {
   hoy: string;
+  /** "HH:MM" en Argentina al cargar la página (turnos en el día). */
+  horaActual: string;
   config: ConfigReservas;
   servicios: ServicioPublico[];
   ocupaciones: Ocupacion[];

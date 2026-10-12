@@ -8,7 +8,8 @@ import type {
   VehiculoEnmascarado,
 } from "@/lib/types/reserva";
 import type { ResultadoDia } from "@/lib/reservas/disponibilidad";
-import { normalizarPatente, normalizarTelefono } from "@/lib/reservas/vehiculos";
+import { normalizarPatente } from "@/lib/reservas/vehiculos";
+import { PAIS_ARGENTINA, interpretarTelefono, telefonoCompleto } from "@/lib/reservas/telefono";
 
 export interface VehiculoForm {
   marca: string;
@@ -22,6 +23,8 @@ export interface VehiculoForm {
 
 export interface EstadoReserva {
   modo: "nuevo" | "actual" | null;
+  /** Código del país del celular ("54" = Argentina, "" = otro país). */
+  pais: string;
   telefono: string;
   nombre: string;
   email: string;
@@ -44,6 +47,7 @@ export interface EstadoReserva {
 
 export const ESTADO_INICIAL: EstadoReserva = {
   modo: null,
+  pais: PAIS_ARGENTINA,
   telefono: "",
   nombre: "",
   email: "",
@@ -68,13 +72,15 @@ export const PASOS = [
 
 export type IdPaso = (typeof PASOS)[number]["id"];
 
-export const telefonoValido = (t: string) => normalizarTelefono(t).length === 10;
+/** El celular tal como se guarda: con "+código" si es de otro país. */
+export const celularDe = (e: Pick<EstadoReserva, "pais" | "telefono">) => telefonoCompleto(e.pais, e.telefono);
+export const telefonoValido = (e: Pick<EstadoReserva, "pais" | "telefono">) => !!interpretarTelefono(celularDe(e));
 
 function validarCliente(e: EstadoReserva): string | null {
   if (!e.modo) return "Contanos si ya viniste a JMF o si es tu primera vez.";
-  if (!telefonoValido(e.telefono)) {
-    return "Revisá el celular: código de área sin el 0 y número sin el 15 (ej. 11 6972 8834).";
-  }
+  // Mensajes cortos: la explicación de cómo escribirlo ya está abajo del campo.
+  if (!e.telefono.trim()) return "Completá tu celular.";
+  if (!telefonoValido(e)) return "Revisá el celular.";
   if (e.modo === "actual" && e.busqueda.estado !== "encontrado") return "Buscá tus datos con tu celular.";
   if (e.modo === "nuevo" && e.nombre.trim().length < 3) return "Completá tu nombre y apellido.";
   if (e.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.email.trim())) return "Revisá el email.";
@@ -129,7 +135,7 @@ export function armarInput(e: EstadoReserva): ReservaInput {
   const v = e.vehiculo;
   return {
     modo: e.modo === "actual" ? "actual" : "nuevo",
-    telefono: e.telefono,
+    telefono: celularDe(e),
     nombre: e.nombre,
     email: e.email,
     vehiculo_id: e.vehiculoId,

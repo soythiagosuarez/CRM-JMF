@@ -11,7 +11,7 @@ import {
   actualizarServicio,
   cambiarActivoServicio,
 } from "@/app/(app)/servicios/actions";
-import { RESERVA_ONLINE_LABEL, type Servicio } from "@/lib/types/servicio";
+import { RESERVA_ONLINE_LABEL, textoAnticipacion, type Servicio } from "@/lib/types/servicio";
 import { precioItem, textoPrecio, textoPrecioCatalogo } from "@/lib/reservas/precios";
 
 export function ServiciosClient({ servicios }: { servicios: Servicio[] }) {
@@ -100,6 +100,13 @@ export function ServiciosClient({ servicios }: { servicios: Servicio[] }) {
                     <span className="text-texto">{textoPrecioCatalogo(s)}</span>
                     {s.limite_dia && <span>Máx. {s.limite_dia} por día</span>}
                     {s.limite_semana && <span>Máx. {s.limite_semana} por semana</span>}
+                    {s.reserva_online !== "no" && s.anticipacion_valor != null && s.anticipacion_unidad && (
+                      <span>
+                        {s.anticipacion_unidad === "horas"
+                          ? `Se reserva en el día, con ${textoAnticipacion(s.anticipacion_valor, "horas")} de anticipación`
+                          : `Se reserva con ${textoAnticipacion(s.anticipacion_valor, "dias")} de anticipación`}
+                      </span>
+                    )}
                   </div>
                   {s.variantes.length > 0 && (
                     <ul className="mt-2 flex flex-col gap-0.5 text-xs text-texto-secundario">

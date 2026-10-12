@@ -124,8 +124,9 @@ export function AgendaOnlineConfig({
           <div>
             <dt className="text-xs text-texto-secundario">Se reserva</dt>
             <dd className="text-texto">
-              Desde {config.anticipacion_min_dias === 0 ? "hoy" : `${config.anticipacion_min_dias} día(s) antes`} y
-              hasta {config.anticipacion_max_dias} días adelante
+              Hasta {config.anticipacion_max_dias} días adelante. La anticipación mínima se define en cada
+              servicio (si no tiene,{" "}
+              {config.anticipacion_min_dias === 0 ? "desde hoy" : `${config.anticipacion_min_dias} día(s) antes`}).
             </dd>
           </div>
           <div className="sm:col-span-2">
@@ -198,7 +199,7 @@ export function AgendaOnlineConfig({
                 />
               </label>
               <label className="flex flex-col gap-1.5 text-sm text-texto-secundario">
-                Días mínimos de anticipación
+                Anticipación general en días (servicios sin la suya)
                 <input
                   name="anticipacion_min_dias"
                   type="number"

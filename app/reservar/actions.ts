@@ -8,7 +8,8 @@ import { obtenerContextoAgenda } from "@/lib/reservas/datos";
 import { jornadasServicio, validarHorario } from "@/lib/reservas/disponibilidad";
 import { esFechaISO } from "@/lib/reservas/fechas";
 import { nombreItem, precioItem, seCotizaPorFoto, textoPrecio, textoPrecioTotal } from "@/lib/reservas/precios";
-import { enmascararPatente, normalizarPatente, normalizarTelefono } from "@/lib/reservas/vehiculos";
+import { enmascararPatente, normalizarPatente } from "@/lib/reservas/vehiculos";
+import { interpretarTelefono } from "@/lib/reservas/telefono";
 import {
   CANAL_LABEL,
   type CanalReserva,
@@ -57,12 +58,11 @@ async function buscarClientePorTelefono(
 }
 
 function validarTelefono(telefono: unknown): string | null {
-  const norm = normalizarTelefono(String(telefono ?? ""));
-  return norm.length === 10 ? norm : null;
+  return interpretarTelefono(String(telefono ?? ""))?.norm ?? null;
 }
 
 const ERROR_TELEFONO =
-  "Revisá el celular: poné el código de área sin el 0 y el número sin el 15 (ej. 11 6972 8834).";
+  "Revisá el celular. Si es de Argentina: código de área sin el 0 y número sin el 15. Si es de otro país, elegilo en la lista.";
 
 export async function buscarClienteReserva(
   telefono: string
@@ -172,7 +172,7 @@ export async function crearReserva(
   // --- Validación de lo que llega (no se confía en la pantalla) ---
   const telefonoNorm = validarTelefono(input?.telefono);
   if (!telefonoNorm) return { ok: false, error: ERROR_TELEFONO };
-  const telefono = String(input.telefono).trim().slice(0, 30);
+  const telefono = interpretarTelefono(String(input.telefono))!.telefono;
   const nombre = texto(input.nombre, 120);
   const email = texto(input.email, 120);
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, error: "Revisá el email." };
