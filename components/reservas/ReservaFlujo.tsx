@@ -103,18 +103,21 @@ export function ReservaFlujo({ datos, embebida }: { datos: DatosAgendaPublica; e
 
   // Embebida en la web: le avisa a la página contenedora el alto, para
   // que el iframe crezca con el contenido (ver snippet en Config).
+  // Se mide el contenido de la agenda (no el documento: su alto nunca
+  // baja del alto actual del iframe, así que solo crecería).
   useEffect(() => {
-    if (!embebida || window.parent === window) return;
-    const avisar = () =>
-      window.parent.postMessage(
-        { tipo: "jmf-reserva-altura", altura: document.documentElement.scrollHeight },
-        "*"
-      );
+    const contenido = inicioRef.current;
+    if (!embebida || window.parent === window || !contenido) return;
+    const avisar = () => {
+      const abajo = contenido.getBoundingClientRect().bottom + window.scrollY;
+      // + el margen inferior de la página embebida (py-4).
+      window.parent.postMessage({ tipo: "jmf-reserva-altura", altura: Math.ceil(abajo + 16) }, "*");
+    };
     avisar();
     const observer = new ResizeObserver(avisar);
-    observer.observe(document.body);
+    observer.observe(contenido);
     return () => observer.disconnect();
-  }, [embebida]);
+  }, [embebida, confirmada]);
 
   if (confirmada) {
     return (
@@ -194,11 +197,20 @@ export function ReservaFlujo({ datos, embebida }: { datos: DatosAgendaPublica; e
       {paso === "servicios" ? (
         <div className="rounded-2xl border border-borde bg-panel/60">
           <div className="p-4 sm:p-6">
-            <PasoServicios servicios={datos.servicios} items={estado.items} cambiarItems={cambiarItems} />
+            <PasoServicios
+              servicios={datos.servicios}
+              items={estado.items}
+              cambiarItems={cambiarItems}
+              embebida={embebida}
+            />
           </div>
           {/* Cierre de la tarjeta: total elegido y «Siguiente» (en el celular,
               fija abajo de la pantalla mientras se recorre la lista). */}
-          <div className="sticky bottom-0 z-10 flex flex-col gap-3 rounded-b-2xl border-t border-borde bg-fondo-2/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur sm:static sm:flex-row sm:items-center sm:justify-between sm:bg-transparent sm:px-6 sm:pb-4 sm:backdrop-blur-none">
+          <div
+            className={`flex flex-col gap-3 rounded-b-2xl border-t border-borde p-4 sm:static sm:flex-row sm:items-center sm:justify-between sm:bg-transparent sm:px-6 sm:pb-4 sm:backdrop-blur-none ${
+              embebida ? "" : "sticky bottom-0 z-10 bg-fondo-2/95 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur"
+            }`}
+          >
             {error ? (
               <p role="alert" className="text-sm text-rojo">
                 {error}

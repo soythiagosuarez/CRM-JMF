@@ -56,14 +56,24 @@ function opcionesDe(servicios: ServicioPublico[]): OpcionServicio[] {
   });
 }
 
+/** Clases de la lista: en la página, alto según la pantalla; embebida en
+ * la web (iframe que crece con el contenido), alto fijo y scroll propio
+ * también en el celular, si no «Siguiente» quedaría al final de todo. */
+const LISTA_PAGINA =
+  "sm:max-h-[min(calc(100dvh-31rem),620px)] sm:min-h-72 sm:overflow-y-auto sm:overscroll-contain sm:pb-10 sm:[mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)]";
+const LISTA_EMBEBIDA =
+  "max-h-[480px] sm:max-h-[560px] overflow-y-auto overscroll-contain pb-10 [mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)]";
+
 export function PasoServicios({
   servicios,
   items,
   cambiarItems,
+  embebida = false,
 }: {
   servicios: ServicioPublico[];
   items: ItemReserva[];
   cambiarItems: (items: ItemReserva[]) => void;
+  embebida?: boolean;
 }) {
   const opciones = opcionesDe(servicios);
   // Una sección por servicio (PPF, Polarizado, Tratamiento cerámico…)
@@ -110,7 +120,7 @@ export function PasoServicios({
         <div
           tabIndex={0}
           aria-label="Servicios"
-          className="flex flex-col gap-7 px-1 sm:max-h-[min(calc(100dvh-31rem),620px)] sm:min-h-72 sm:overflow-y-auto sm:overscroll-contain sm:pb-10 sm:[mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)] focus-visible:outline-offset-4"
+          className={`flex flex-col gap-7 px-1 focus-visible:outline-offset-4 ${embebida ? LISTA_EMBEBIDA : LISTA_PAGINA}`}
         >
           {categorias.map(({ servicio, opciones: delServicio }) => (
             <section

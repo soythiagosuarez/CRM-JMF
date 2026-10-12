@@ -46,7 +46,9 @@ export default async function ReservarPage({
   return (
     <div
       className={`flex w-full flex-1 flex-col ${
-        embebida ? "px-3 py-4" : "min-h-dvh px-4 pt-8 sm:pt-12 md:px-[120px]"
+        // Embebida: mismo fondo que la web de JMF (#070707), así la agenda
+        // se ve parte de la página y no un recuadro aparte.
+        embebida ? "bg-[#070707] px-1 py-4" : "min-h-dvh px-4 pt-8 sm:pt-12 md:px-[120px]"
       }`}
     >
       <div className="flex w-full flex-1 flex-col gap-6">

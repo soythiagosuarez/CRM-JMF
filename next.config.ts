@@ -21,7 +21,10 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: "Content-Security-Policy",
-            value: "frame-ancestors 'self' https://soythiagosuarez.github.io",
+            // En desarrollo también desde localhost, para probar la web local.
+            value: `frame-ancestors 'self' https://soythiagosuarez.github.io${
+              process.env.NODE_ENV === "production" ? "" : " http://localhost:*"
+            }`,
           },
         ],
       },
