@@ -29,7 +29,7 @@ export function TurnosClienteCard({ turnos }: { turnos: TurnoConDatos[] }) {
           {turnos.map((t) => (
             <li
               key={t.id}
-              className="flex items-center justify-between gap-3 rounded-lg border border-borde bg-panel-2 p-3"
+              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 rounded-lg border border-borde bg-panel-2 p-3"
             >
               <div className="flex items-start gap-3 min-w-0">
                 <CalendarDays size={14} className="text-texto-secundario mt-0.5 shrink-0" />
@@ -41,7 +41,7 @@ export function TurnosClienteCard({ turnos }: { turnos: TurnoConDatos[] }) {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5 shrink-0">
+              <div className="flex items-center gap-1.5 shrink-0 pl-[26px] sm:pl-0">
                 {t.origen === "online" && <Badge tono="rojo">Online</Badge>}
                 <Badge tono={TONO[t.estado]}>{ESTADO_TURNO_LABEL[t.estado]}</Badge>
               </div>

@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { fechaLarga, textoFranja } from "@/lib/reservas/fechas";
-import { AVISO_PRECIO_VARIABLE, nombreItem, precioItem, textoPrecioTotal } from "@/lib/reservas/precios";
+import { fechaLarga, horaCorta } from "@/lib/reservas/fechas";
+import { AVISO_COTIZACION, nombreItem, seCotizaPorFoto, textoPrecioTotal } from "@/lib/reservas/precios";
 import { TAMANO_LABEL } from "@/lib/reservas/vehiculos";
 import { CANAL_LABEL, type CanalReserva, type DatosAgendaPublica } from "@/lib/types/reserva";
-import type { Franja } from "@/lib/types/config";
 import { Aviso, Campo, Seccion } from "./ui";
 import type { EstadoReserva } from "./estado";
 
@@ -21,14 +20,12 @@ function Fila({ label, children }: { label: string; children: React.ReactNode })
 export function PasoConfirmar({
   datos,
   estado,
-  franja,
   fechaListo,
   actualizar,
   embebida,
 }: {
   datos: DatosAgendaPublica;
   estado: EstadoReserva;
-  franja: Franja | null;
   fechaListo: string | null;
   actualizar: (cambios: Partial<EstadoReserva>) => void;
   embebida: boolean;
@@ -36,14 +33,13 @@ export function PasoConfirmar({
   const servicioDe = (id: string) => datos.servicios.find((s) => s.id === id);
   const autoCargado = estado.busqueda.vehiculos.find((v) => v.id === estado.vehiculoId);
   const v = estado.vehiculo;
-  const hayVariable = estado.items.some((i) => {
+  const cotizaPorFoto = estado.items.some((i) => {
     const s = servicioDe(i.servicio_id);
-    return s ? precioItem(s, i).variable : false;
+    return !!s && i.variante == null && seCotizaPorFoto(s);
   });
-  const hayConsulta = estado.items.some((i) => servicioDe(i.servicio_id)?.reserva_online === "consulta");
 
   return (
-    <Seccion titulo="Revisá y confirmá" subtitulo="Si algo no está bien, volvé al paso anterior.">
+    <Seccion titulo="Revisá y confirmá" subtitulo="Si algo no está bien, volvé atrás y cambialo.">
       <dl className="rounded-xl border border-borde bg-panel px-4 py-1">
         <Fila label="Vos">
           {estado.busqueda.estado === "encontrado" ? "Cliente de JMF" : estado.nombre}
@@ -76,7 +72,7 @@ export function PasoConfirmar({
           </ul>
         </Fila>
         <Fila label="Ingreso">
-          {estado.fecha && franja ? `${fechaLarga(estado.fecha)}, ${textoFranja(franja.desde, franja.hasta)}` : "—"}
+          {estado.fecha && estado.hora ? `${fechaLarga(estado.fecha)}, a las ${horaCorta(estado.hora)} hs` : "—"}
         </Fila>
         {fechaListo && estado.fecha && (
           <Fila label="Listo">
@@ -90,13 +86,10 @@ export function PasoConfirmar({
         </Fila>
       </dl>
 
-      {hayVariable && <p className="text-xs text-texto-secundario -mt-2">{AVISO_PRECIO_VARIABLE}</p>}
-      {hayConsulta && (
-        <Aviso tono="premium">
-          Este turno queda <strong>a confirmar</strong>: te escribimos por WhatsApp para definir el precio final
-          según tu auto.
-        </Aviso>
-      )}
+      {cotizaPorFoto && <p className="text-xs text-texto-secundario -mt-2">{AVISO_COTIZACION}</p>}
+      <Aviso tono="neutro">
+        Al confirmar te llevamos a WhatsApp para avisarle a JMF: por ahí te confirmamos el turno.
+      </Aviso>
 
       <Campo label="¿Cómo nos conociste?" htmlFor="canal">
         <select

@@ -30,7 +30,7 @@ export default async function InicioPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-texto">Inicio</h1>
+          <h1 className="font-display text-xl sm:text-2xl font-semibold text-texto">Inicio</h1>
           <p className="text-sm text-texto-secundario mt-1">
             Resumen general de Detailing, Shop y Classmotor.
           </p>
@@ -143,7 +143,50 @@ export default async function InicioPage() {
               No hay autos en el taller ahora mismo.
             </p>
           ) : (
-            <div className="overflow-x-auto -mx-1">
+            <>
+            {/* Celular: una ficha por auto, sin tabla ancha. */}
+            <div className="flex flex-col divide-y divide-borde/60 lg:hidden">
+              {dash.autosEnTaller.map((o) => (
+                <div key={o.id} className="flex flex-col gap-1.5 py-3 first:pt-0 last:pb-0">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm text-texto">{o.cliente_nombre}</p>
+                      <p className="text-xs text-texto-secundario">
+                        {o.vehiculo_descripcion || "Sin vehículo"}
+                      </p>
+                    </div>
+                    {o.cliente_telefono && (
+                      <a
+                        href={linkWhatsapp(
+                          o.cliente_telefono,
+                          mensajeCambioFase(o.cliente_nombre, o.vehiculo_descripcion, o.fase_actual ?? "")
+                        )}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex shrink-0 items-center gap-1.5 text-xs text-verde hover:underline"
+                      >
+                        <MessageCircle size={14} />
+                        Avisar
+                      </a>
+                    )}
+                  </div>
+                  <p className="text-xs text-texto-secundario">
+                    {o.servicio_principal_nombre}
+                    {o.fase_actual && <span className="text-texto"> · {o.fase_actual}</span>}
+                  </p>
+                  {o.flags.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {o.flags.map((f) => (
+                        <Badge key={f} tono="negativo">
+                          {FLAG_LABEL[f]}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="hidden lg:block overflow-x-auto -mx-1">
               <table className="w-full text-sm min-w-[560px]">
                 <thead>
                   <tr className="text-left text-texto-secundario border-b border-borde">
@@ -205,6 +248,7 @@ export default async function InicioPage() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </Card>
 

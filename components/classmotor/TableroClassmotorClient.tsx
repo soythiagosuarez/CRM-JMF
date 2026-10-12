@@ -70,11 +70,11 @@ export function TableroClassmotorClient({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Image src="/brands/classmotor.png" alt="" width={44} height={44} />
+          <Image src="/brands/classmotor.png" alt="" width={44} height={44} className="hidden sm:block shrink-0" />
           <div>
-            <h1 className="font-display text-2xl font-semibold text-texto">Gestión Classmotor</h1>
+            <h1 className="font-display text-xl sm:text-2xl font-semibold text-texto">Gestión Classmotor</h1>
             <p className="text-sm text-texto-secundario mt-1">
               Fichas de auto por estado, con la ganancia calculada. Arrastrá para avanzar — no
               se puede volver atrás.

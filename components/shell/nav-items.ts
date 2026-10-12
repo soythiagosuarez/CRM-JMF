@@ -62,3 +62,9 @@ export const configItem: NavItem = {
   label: "Config",
   icon: Settings,
 };
+
+/** Ruta activa: la exacta, o una sección hija (ej. /clientes/123 → Clientes). */
+export function esRutaActiva(pathname: string, href: string) {
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(href + "/");
+}

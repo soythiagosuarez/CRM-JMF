@@ -42,9 +42,9 @@ export function RecordatoriosClient({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-texto">Recordatorios</h1>
+          <h1 className="font-display text-xl sm:text-2xl font-semibold text-texto">Recordatorios</h1>
           <p className="text-sm text-texto-secundario mt-1">
             Mantenimientos y renovaciones se generan solos al entregar una orden de tratamiento.
             También podés anotar algo aparte para tu marca.

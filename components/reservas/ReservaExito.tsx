@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CheckCircle2, Info, MapPin, MessageCircle } from "lucide-react";
-import { fechaLarga, textoFranja } from "@/lib/reservas/fechas";
+import { fechaLarga, horaCorta } from "@/lib/reservas/fechas";
 import { linkWhatsapp, mensajeReservaAJmf } from "@/lib/whatsapp";
 import type { ConfigReservas } from "@/lib/types/config";
 import type { ReservaConfirmada } from "@/lib/types/reserva";
@@ -34,11 +34,12 @@ export function ReservaExito({ reserva, config }: { reserva: ReservaConfirmada; 
       patente: reserva.patente,
       servicio: reserva.servicios,
       dia: fechaLarga(reserva.fecha),
-      franja: textoFranja(reserva.franja_desde, reserva.franja_hasta),
+      hora: `a las ${horaCorta(reserva.hora)} hs`,
       precio: reserva.precio,
       codigo: reserva.codigo,
       aConfirmar,
       puertaAPuerta: reserva.puerta_a_puerta,
+      cotizaPorFoto: reserva.cotiza_por_foto,
     })
   );
 
@@ -64,8 +65,9 @@ export function ReservaExito({ reserva, config }: { reserva: ReservaConfirmada; 
           </h2>
           <p className="text-sm text-texto-secundario mt-1">
             {aConfirmar
-              ? "Tu turno queda a confirmar: te escribimos por WhatsApp para definir el precio final."
-              : "Te esperamos en el taller."}
+              ? "Avisanos por WhatsApp y te confirmamos el turno y el precio final."
+              : "Avisanos por WhatsApp y te confirmamos el turno."}
+            {reserva.cotiza_por_foto && " Mandanos también una foto del bollo para cotizarlo."}
           </p>
         </div>
       </div>
@@ -79,7 +81,7 @@ export function ReservaExito({ reserva, config }: { reserva: ReservaConfirmada; 
           {reserva.patente ? ` · ${reserva.patente}` : ""}
         </p>
         <p className="text-texto">
-          {fechaLarga(reserva.fecha)}, {textoFranja(reserva.franja_desde, reserva.franja_hasta)}
+          {fechaLarga(reserva.fecha)}, a las {horaCorta(reserva.hora)} hs
         </p>
         <p className="text-texto-secundario">
           {reserva.fecha_listo === reserva.fecha

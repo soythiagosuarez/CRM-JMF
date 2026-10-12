@@ -48,7 +48,7 @@ export default async function ReporteMarcaPage({
             <ChevronLeft size={14} />
             Volver a Reportes
           </Link>
-          <h1 className="font-display text-2xl font-semibold text-texto">
+          <h1 className="font-display text-xl sm:text-2xl font-semibold text-texto">
             {MARCA_LABEL[marca]}
           </h1>
           <p className="text-sm text-texto-secundario mt-1 capitalize">
@@ -67,20 +67,20 @@ export default async function ReporteMarcaPage({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <span className="text-sm text-texto-secundario">Ingresos</span>
-          <p className="font-display text-2xl font-semibold text-verde mt-1">
+          <p className="font-display text-xl sm:text-2xl font-semibold text-verde mt-1">
             <Monto valor={reporte.ingresos} />
           </p>
         </Card>
         <Card>
           <span className="text-sm text-texto-secundario">Egresos</span>
-          <p className="font-display text-2xl font-semibold text-rojo mt-1">
+          <p className="font-display text-xl sm:text-2xl font-semibold text-rojo mt-1">
             <Monto valor={reporte.egresos} />
           </p>
         </Card>
         <Card>
           <span className="text-sm text-texto-secundario">Neto</span>
           <p
-            className={`font-display text-2xl font-semibold mt-1 ${
+            className={`font-display text-xl sm:text-2xl font-semibold mt-1 ${
               enRojo ? "text-rojo" : reporte.neto > 0 ? "text-verde" : "text-texto-secundario"
             }`}
           >
@@ -96,7 +96,28 @@ export default async function ReporteMarcaPage({
             No hay movimientos de {MARCA_LABEL[marca]} en {etiquetaMes}.
           </p>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Celular: una línea por movimiento, sin tabla ancha. */}
+          <div className="flex flex-col divide-y divide-borde/60 lg:hidden">
+            {reporte.movimientos.map((m) => (
+              <div key={m.id} className="flex items-start justify-between gap-3 py-2.5">
+                <div className="min-w-0">
+                  <p className="text-sm text-texto">{m.categoria}</p>
+                  <p className="text-xs text-texto-secundario break-words">
+                    {formatFecha(m.fecha)}
+                    {m.descripcion ? ` · ${m.descripcion}` : ""}
+                  </p>
+                </div>
+                <span
+                  className={`shrink-0 text-sm tabular-nums ${m.tipo === "ingreso" ? "text-verde" : "text-rojo"}`}
+                >
+                  {m.tipo === "egreso" ? "-" : "+"}
+                  <Monto valor={m.monto_ars} />
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="hidden lg:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs text-texto-secundario uppercase tracking-wide border-b border-borde">
@@ -130,6 +151,7 @@ export default async function ReporteMarcaPage({
               </tbody>
             </table>
           </div>
+          </>
         )}
       </Card>
     </div>

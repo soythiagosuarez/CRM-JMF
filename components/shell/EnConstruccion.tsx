@@ -11,7 +11,7 @@ export function EnConstruccion({
 }) {
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-display text-2xl font-semibold text-texto">{titulo}</h1>
+      <h1 className="font-display text-xl sm:text-2xl font-semibold text-texto">{titulo}</h1>
       <Card className="flex flex-col items-center justify-center gap-4 py-16 text-center">
         {logo ? (
           <Image src={logo} alt={titulo} width={160} height={107} priority />

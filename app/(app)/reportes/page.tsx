@@ -38,7 +38,7 @@ export default async function ReportesPage({
     <div className="flex flex-col gap-6">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-texto">Reportes</h1>
+          <h1 className="font-display text-xl sm:text-2xl font-semibold text-texto">Reportes</h1>
           <p className="text-sm text-texto-secundario mt-1">
             Resumen del mes: facturación, marca y servicio más rentable.
           </p>
@@ -73,20 +73,20 @@ export default async function ReportesPage({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <span className="text-sm text-texto-secundario">Facturación</span>
-          <p className="font-display text-2xl font-semibold text-verde mt-1">
+          <p className="font-display text-xl sm:text-2xl font-semibold text-verde mt-1">
             <Monto valor={reporte.facturacion} />
           </p>
         </Card>
         <Card>
           <span className="text-sm text-texto-secundario">Egresos</span>
-          <p className="font-display text-2xl font-semibold text-rojo mt-1">
+          <p className="font-display text-xl sm:text-2xl font-semibold text-rojo mt-1">
             <Monto valor={reporte.egresos} />
           </p>
         </Card>
         <Card>
           <span className="text-sm text-texto-secundario">Neto</span>
           <p
-            className={`font-display text-2xl font-semibold mt-1 ${
+            className={`font-display text-xl sm:text-2xl font-semibold mt-1 ${
               reporte.neto > 0 ? "text-verde" : reporte.neto < 0 ? "text-rojo" : "text-texto-secundario"
             }`}
           >

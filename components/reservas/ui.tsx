@@ -39,7 +39,7 @@ export function Seccion({
   return (
     <section className="flex flex-col gap-4">
       <div>
-        <h2 className="font-display text-xl font-semibold text-texto">{titulo}</h2>
+        <h2 className="font-display text-lg sm:text-xl font-semibold text-texto">{titulo}</h2>
         {subtitulo && <p className="text-sm text-texto-secundario mt-1">{subtitulo}</p>}
       </div>
       {children}

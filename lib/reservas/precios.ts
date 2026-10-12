@@ -1,14 +1,16 @@
 /**
- * Precios de la agenda online. Los servicios de precio variable (los
- * que quedan "a confirmar" o tienen un tope "hasta") se muestran como
- * "Desde $X" — el precio final se define por WhatsApp (respuesta 4.3/4.4).
+ * Precios de la agenda online. Cada servicio (o cada opción de un
+ * servicio) muestra su precio de lista; si tiene un tope se muestra el
+ * rango ("USD 3.000 – USD 4.000"). Solo los que se cotizan con una foto
+ * por WhatsApp (Sacabollo: precio sin opciones y con tope) llevan
+ * "Desde" adelante del precio.
  */
 import { formatARS } from "@/lib/format";
 import type { MonedaServicio } from "@/lib/types/servicio";
 import type { ItemReserva, ServicioPublico } from "@/lib/types/reserva";
 
-export const AVISO_PRECIO_VARIABLE =
-  "Precio aproximado. El precio final lo definimos por WhatsApp según el tamaño y el estado de tu auto y los productos que elijas.";
+export const AVISO_COTIZACION =
+  "El precio final de Sacabollo depende del bollo: mandanos una foto por WhatsApp y te lo cotizamos.";
 
 type ServicioPrecio = Pick<
   ServicioPublico,
@@ -27,6 +29,12 @@ export interface PrecioItem {
   variable: boolean;
 }
 
+/** Se cotiza con una foto por WhatsApp: sin opciones y con un tope de
+ * precio (hoy, Sacabollo). Es el único caso que lleva "Desde". */
+export function seCotizaPorFoto(servicio: Pick<ServicioPrecio, "variantes" | "precio_hasta">): boolean {
+  return servicio.variantes.length === 0 && servicio.precio_hasta != null;
+}
+
 export function precioItem(servicio: ServicioPrecio, item: Pick<ItemReserva, "variante" | "cantidad">): PrecioItem {
   const variante = item.variante != null ? servicio.variantes[item.variante] : undefined;
   const cantidad = variante?.unidad ? Math.max(1, item.cantidad) : 1;
@@ -38,14 +46,16 @@ export function precioItem(servicio: ServicioPrecio, item: Pick<ItemReserva, "va
     moneda: servicio.moneda,
     desde,
     hasta,
-    variable: servicio.reserva_online === "consulta" || hasta != null || desde == null,
+    variable: (!variante && seCotizaPorFoto(servicio)) || desde == null,
   };
 }
 
 export function textoPrecio(p: PrecioItem): string {
   if (p.desde == null) return "A consultar";
   const monto = formatMoneda(p.desde, p.moneda);
-  return p.variable ? `Desde ${monto}` : monto;
+  if (p.variable) return `Desde ${monto}`;
+  if (p.hasta != null && p.hasta > p.desde) return `${monto} – ${formatMoneda(p.hasta, p.moneda)}`;
+  return monto;
 }
 
 /** Precio que se muestra en la tarjeta del servicio, antes de elegir variante. */
@@ -67,7 +77,8 @@ export function textoPrecioTotal(
   servicios: (ServicioPrecio & { id: string })[],
   items: ItemReserva[]
 ): string {
-  const totales = new Map<MonedaServicio, number>();
+  const minimos = new Map<MonedaServicio, number>();
+  const maximos = new Map<MonedaServicio, number>();
   let variable = false;
   let sinPrecio = false;
   for (const item of items) {
@@ -79,12 +90,21 @@ export function textoPrecioTotal(
       continue;
     }
     variable ||= p.variable;
-    totales.set(p.moneda, (totales.get(p.moneda) ?? 0) + p.desde);
+    minimos.set(p.moneda, (minimos.get(p.moneda) ?? 0) + p.desde);
+    // Lo que se cotiza por foto no suma tope: va como "Desde".
+    const tope = p.variable ? p.desde : (p.hasta ?? p.desde);
+    maximos.set(p.moneda, (maximos.get(p.moneda) ?? 0) + tope);
   }
-  if (totales.size === 0) return "A consultar";
+  if (minimos.size === 0) return "A consultar";
   const partes = (["USD", "ARS"] as MonedaServicio[])
-    .filter((m) => totales.has(m))
-    .map((m) => formatMoneda(totales.get(m)!, m));
+    .filter((m) => minimos.has(m))
+    .map((m) => {
+      const min = minimos.get(m)!;
+      const max = maximos.get(m)!;
+      return max > min && !variable
+        ? `${formatMoneda(min, m)} – ${formatMoneda(max, m)}`
+        : formatMoneda(min, m);
+    });
   const texto = partes.join(" + ");
   return variable || sinPrecio ? `Desde ${texto}` : texto;
 }

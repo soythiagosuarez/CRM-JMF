@@ -123,15 +123,15 @@ export function CalendarioClient({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-texto">Agenda</h1>
+          <h1 className="font-display text-xl sm:text-2xl font-semibold text-texto">Agenda</h1>
           <p className="text-sm text-texto-secundario mt-1">
             Turnos de servicio. {resumenHorarios(horarios)}. Los que llegan por la agenda online
             llevan la etiqueta <MarcaOnline />y los punteados quedan a confirmar.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 shrink-0">
           <Button variante="secundario" onClick={() => setIngresandoClassmotor(true)}>
             <Gauge size={16} />
             Ingresar auto Classmotor
@@ -199,11 +199,22 @@ export function CalendarioClient({
         </div>
       </div>
 
+      {vista === "mes" && (
+        <MesCompacto
+          dias={diasAMostrar}
+          porDia={porDia}
+          mesActual={mesActual}
+          onVerDia={(d) => irA("dia", d)}
+        />
+      )}
+
       <div
         className={
           vista === "dia"
             ? "grid grid-cols-1"
-            : "grid grid-cols-1 sm:grid-cols-7 gap-3"
+            : vista === "mes"
+              ? "hidden sm:grid sm:grid-cols-7 gap-3"
+              : "grid grid-cols-1 sm:grid-cols-7 gap-3"
         }
       >
         {diasAMostrar.map((dia) => (
@@ -274,6 +285,75 @@ function BannerHoy({ cantidad }: { cantidad: number }) {
       <CalendarX size={18} className="text-texto-secundario shrink-0" />
       <p className="text-sm text-texto-secundario">
         Hoy todavía no hay turnos agendados.
+      </p>
+    </div>
+  );
+}
+
+const INICIALES_SEMANA = ["L", "M", "M", "J", "V", "S", "D"];
+
+/**
+ * Vista mes en celulares: 35 celdas apiladas eran un scroll eterno, así
+ * que se muestra un calendario chico con la cantidad de turnos por día;
+ * al tocar un día se abre la vista Día.
+ */
+function MesCompacto({
+  dias,
+  porDia,
+  mesActual,
+  onVerDia,
+}: {
+  dias: string[];
+  porDia: Map<string, TurnoConDatos[]>;
+  mesActual: number;
+  onVerDia: (fecha: string) => void;
+}) {
+  return (
+    <div className="sm:hidden rounded-xl border border-borde bg-panel p-3">
+      <div className="grid grid-cols-7 gap-1 text-center">
+        {INICIALES_SEMANA.map((d, i) => (
+          <span key={i} className="pb-1 text-xs font-medium text-texto-secundario">
+            {d}
+          </span>
+        ))}
+        {dias.map((dia) => {
+          const turnos = (porDia.get(dia) ?? []).filter((t) => t.estado !== "cancelado");
+          const fuera = !esDelMesActual(dia, mesActual);
+          const pendientes = turnos.some((t) => t.estado === "a_confirmar");
+          return (
+            <button
+              key={dia}
+              onClick={() => onVerDia(dia)}
+              className={`flex aspect-square flex-col items-center justify-center gap-1 rounded-lg text-sm ${
+                fuera ? "text-texto-secundario/50" : "text-texto"
+              } ${turnos.length > 0 && !fuera ? "bg-panel-2" : ""}`}
+            >
+              <span
+                className={
+                  esHoy(dia)
+                    ? "flex h-6 w-6 items-center justify-center rounded-full bg-rojo font-medium text-white"
+                    : ""
+                }
+              >
+                {Number(dia.slice(8, 10))}
+              </span>
+              {turnos.length > 0 ? (
+                <span
+                  className={`min-w-4 rounded-full px-1 text-[10px] leading-4 font-semibold ${
+                    pendientes ? "bg-dorado/15 text-dorado" : "bg-verde/15 text-verde"
+                  }`}
+                >
+                  {turnos.length}
+                </span>
+              ) : (
+                <span className="h-4" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+      <p className="mt-2 text-center text-xs text-texto-secundario">
+        El número es la cantidad de turnos. Tocá un día para verlos.
       </p>
     </div>
   );

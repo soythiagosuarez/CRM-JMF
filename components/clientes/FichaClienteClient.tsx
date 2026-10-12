@@ -105,8 +105,8 @@ export function FichaClienteClient({
           </>
         ) : (
           <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="font-display text-2xl font-semibold text-texto">
+            <div className="min-w-0">
+              <h1 className="font-display text-xl sm:text-2xl font-semibold text-texto">
                 {cliente.nombre_completo}
               </h1>
               <div className="flex flex-wrap gap-4 mt-2 text-sm text-texto-secundario">
@@ -116,8 +116,8 @@ export function FichaClienteClient({
                   </span>
                 )}
                 {cliente.email && (
-                  <span className="flex items-center gap-1.5">
-                    <Mail size={14} /> {cliente.email}
+                  <span className="flex items-center gap-1.5 min-w-0 break-all">
+                    <Mail size={14} className="shrink-0" /> {cliente.email}
                   </span>
                 )}
               </div>
@@ -201,8 +201,8 @@ export function FichaClienteClient({
               </div>
             ) : (
               <div key={v.id} className="rounded-lg border border-borde bg-panel-2 p-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+                  <div className="min-w-0">
                     <p className="text-sm text-texto">
                       {[v.marca, v.modelo, v.anio].filter(Boolean).join(" ") || "Vehículo"}
                     </p>
@@ -288,7 +288,7 @@ export function FichaClienteClient({
             {historial.map((o) => (
               <div
                 key={o.id}
-                className="flex items-center justify-between gap-3 rounded-lg border border-borde bg-panel-2 p-3"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 rounded-lg border border-borde bg-panel-2 p-3"
               >
                 <div className="flex items-start gap-3 min-w-0">
                   <Wrench size={14} className="text-texto-secundario mt-0.5 shrink-0" />
@@ -305,7 +305,9 @@ export function FichaClienteClient({
                     </p>
                   </div>
                 </div>
-                <Badge tono={ESTADO_TONO[o.estado]}>{ESTADO_LABEL[o.estado]}</Badge>
+                <div className="pl-[26px] sm:pl-0 shrink-0">
+                  <Badge tono={ESTADO_TONO[o.estado]}>{ESTADO_LABEL[o.estado]}</Badge>
+                </div>
               </div>
             ))}
           </div>

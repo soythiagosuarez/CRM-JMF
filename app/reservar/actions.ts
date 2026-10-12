@@ -5,9 +5,9 @@ import { revalidatePath } from "next/cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { obtenerContextoAgenda } from "@/lib/reservas/datos";
-import { jornadasServicio, validarFranja } from "@/lib/reservas/disponibilidad";
+import { jornadasServicio, validarHorario } from "@/lib/reservas/disponibilidad";
 import { esFechaISO } from "@/lib/reservas/fechas";
-import { nombreItem, precioItem, textoPrecio, textoPrecioTotal } from "@/lib/reservas/precios";
+import { nombreItem, precioItem, seCotizaPorFoto, textoPrecio, textoPrecioTotal } from "@/lib/reservas/precios";
 import { enmascararPatente, normalizarPatente, normalizarTelefono } from "@/lib/reservas/vehiculos";
 import {
   CANAL_LABEL,
@@ -176,8 +176,8 @@ export async function crearReserva(
   const nombre = texto(input.nombre, 120);
   const email = texto(input.email, 120);
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, error: "Revisá el email." };
-  if (!esFechaISO(input.fecha) || !/^\d{2}:\d{2}$/.test(String(input.franja_desde))) {
-    return { ok: false, error: "Elegí el día y la franja horaria." };
+  if (!esFechaISO(input.fecha) || !/^\d{2}:\d{2}$/.test(String(input.hora))) {
+    return { ok: false, error: "Elegí el día y el horario." };
   }
   const canal = input.canal as CanalReserva;
   if (!(canal in CANAL_LABEL)) return { ok: false, error: "Contanos cómo nos conociste." };
@@ -190,8 +190,8 @@ export async function crearReserva(
     if ("error" in validacionItems) return { ok: false, error: validacionItems.error };
     const { items } = validacionItems;
 
-    const franja = validarFranja(input.fecha, input.franja_desde, items, ctx);
-    if (!franja.ok) return { ok: false, error: franja.error };
+    const horario = validarHorario(input.fecha, input.hora, items, ctx);
+    if (!horario.ok) return { ok: false, error: horario.error };
 
     // --- Cliente: se reconoce por celular (respuestas 3.1 a 3.4) ---
     const notas: string[] = [];
@@ -327,11 +327,11 @@ export async function crearReserva(
         vehiculo_id: vehiculoId,
         servicios_previstos: items.map((i) => i.servicio_id),
         fecha: input.fecha,
-        hora: franja.franja.desde,
-        hora_hasta: franja.franja.hasta,
+        hora: horario.hora,
+        hora_hasta: null,
         estado,
         origen: "online",
-        fecha_fin_estimada: franja.fin,
+        fecha_fin_estimada: horario.fin,
         codigo,
         puerta_a_puerta: !!input.puerta_a_puerta,
         canal,
@@ -356,11 +356,11 @@ export async function crearReserva(
         patente: patenteTexto,
         servicios: serviciosTexto,
         fecha: input.fecha,
-        franja_desde: franja.franja.desde,
-        franja_hasta: franja.franja.hasta,
-        fecha_listo: franja.fin,
+        hora: horario.hora,
+        fecha_listo: horario.fin,
         precio: precioEstimado,
         puerta_a_puerta: !!input.puerta_a_puerta,
+        cotiza_por_foto: items.some((i) => seCotizaPorFoto(servicioDe(i.servicio_id))),
       },
     };
   } catch (e) {

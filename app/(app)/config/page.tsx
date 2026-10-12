@@ -38,7 +38,7 @@ export default async function ConfigPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="font-display text-2xl font-semibold text-texto">Config</h1>
+        <h1 className="font-display text-xl sm:text-2xl font-semibold text-texto">Config</h1>
         <p className="text-sm text-texto-secundario mt-1">
           Cuenta del login compartido de JMF y ajustes del negocio.
         </p>

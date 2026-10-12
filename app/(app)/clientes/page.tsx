@@ -62,7 +62,7 @@ export default async function ClientesPage({
     <div className="flex flex-col gap-6">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-texto">Clientes</h1>
+          <h1 className="font-display text-xl sm:text-2xl font-semibold text-texto">Clientes</h1>
           <p className="text-sm text-texto-secundario mt-1">
             {conPuntos
               ? "Ficha con datos, vehículos, historial y puntos. Búsqueda por nombre o patente."

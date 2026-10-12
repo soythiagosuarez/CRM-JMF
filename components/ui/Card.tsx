@@ -11,7 +11,7 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 export function Card({ children, className = "", onClick, ...props }: CardProps) {
   return (
     <div
-      className={`rounded-xl border border-borde bg-panel p-5 ${
+      className={`rounded-xl border border-borde bg-panel p-4 sm:p-5 ${
         onClick ? "cursor-pointer" : ""
       } ${className}`}
       onClick={onClick}
@@ -33,15 +33,15 @@ export function CardHeader({
 }) {
   return (
     <div className="flex items-start justify-between gap-3 mb-4">
-      <div>
-        <h2 className="font-display text-lg font-semibold text-texto">
+      <div className="min-w-0">
+        <h2 className="font-display text-base sm:text-lg font-semibold text-texto">
           {title}
         </h2>
         {subtitle && (
           <p className="text-sm text-texto-secundario mt-0.5">{subtitle}</p>
         )}
       </div>
-      {action}
+      {action && <div className="shrink-0">{action}</div>}
     </div>
   );
 }

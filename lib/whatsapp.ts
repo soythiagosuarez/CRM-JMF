@@ -117,21 +117,23 @@ export function mensajeReservaAJmf(datos: {
   patente: string;
   servicio: string;
   dia: string;
-  franja: string;
+  hora: string;
   precio: string;
   codigo: string;
   aConfirmar: boolean;
   puertaAPuerta: boolean;
+  cotizaPorFoto: boolean;
 }): string {
   const lineas = [
     "Hola JMF Detailing! Acabo de reservar un turno:",
     `Nombre: ${datos.cliente}`,
     `Auto: ${datos.auto}${datos.patente ? ` (${datos.patente})` : ""}`,
     `Servicio: ${datos.servicio}`,
-    `Día: ${datos.dia}, ${datos.franja}`,
+    `Día: ${datos.dia}, ${datos.hora}`,
     `Precio aproximado: ${datos.precio}`,
     `Código de reserva: ${datos.codigo}`,
     datos.puertaAPuerta ? "Quiero el servicio puerta a puerta." : null,
+    datos.cotizaPorFoto ? "Les mando una foto del bollo para que me pasen el precio." : null,
     datos.aConfirmar ? "Quedo a la espera de que me confirmen el turno." : null,
   ].filter((l): l is string => l !== null);
   return lineas.join("\n");

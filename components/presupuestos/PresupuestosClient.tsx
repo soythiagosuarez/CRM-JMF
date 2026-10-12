@@ -34,7 +34,7 @@ export function PresupuestosClient({
     <div className="flex flex-col gap-6">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-texto">Presupuestos</h1>
+          <h1 className="font-display text-xl sm:text-2xl font-semibold text-texto">Presupuestos</h1>
           <p className="text-sm text-texto-secundario mt-1">
             Generador de presupuestos: armá uno y mandalo por WhatsApp. No crea clientes —
             eso se hace en Agenda cuando el cliente acepta.

@@ -103,7 +103,8 @@ export interface ReservaInput {
   vehiculo: VehiculoReservaNuevo | null;
   items: ItemReserva[];
   fecha: string;
-  franja_desde: string;
+  /** Horario de ingreso elegido, "HH:MM". */
+  hora: string;
   puerta_a_puerta: boolean;
   canal: CanalReserva;
   acepta_promos: boolean;
@@ -117,11 +118,12 @@ export interface ReservaConfirmada {
   patente: string;
   servicios: string;
   fecha: string;
-  franja_desde: string;
-  franja_hasta: string;
+  hora: string;
   fecha_listo: string;
   precio: string;
   puerta_a_puerta: boolean;
+  /** Eligió un servicio que se cotiza con una foto (Sacabollo). */
+  cotiza_por_foto: boolean;
 }
 
 export interface VehiculoEnmascarado {
