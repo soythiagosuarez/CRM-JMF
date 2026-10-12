@@ -130,13 +130,18 @@ export function ReservaFlujo({ datos, embebida }: { datos: DatosAgendaPublica; e
   const fechaListo = diaElegido?.disponible ? diaElegido.fin : null;
   const esUltimo = indicePaso === PASOS.length - 1;
   const cantidadElegidos = estado.items.length;
+  // Mientras falte algo, «Siguiente» queda desactivado (gris) y al lado
+  // se dice qué falta, como en el CRM. En el último paso se revisa todo.
+  const falta = esUltimo
+    ? PASOS.map((p) => validarPaso(p.id, estado, datos.servicios, disponibilidad)).find(Boolean) ?? null
+    : validarPaso(paso, estado, datos.servicios, disponibilidad);
 
   const botonSiguiente = (
     <button
       type="button"
       onClick={esUltimo ? confirmar : siguiente}
-      disabled={enviando}
-      className="inline-flex items-center justify-center gap-2 rounded-xl bg-rojo px-6 py-3 text-sm font-semibold text-white hover:brightness-110 disabled:opacity-60"
+      disabled={enviando || !!falta}
+      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-rojo px-6 py-3 text-sm font-semibold text-white hover:brightness-110 disabled:cursor-not-allowed disabled:border disabled:border-borde disabled:bg-panel-2 disabled:text-texto-secundario disabled:hover:brightness-100"
     >
       {enviando ? (
         <>
@@ -190,12 +195,14 @@ export function ReservaFlujo({ datos, embebida }: { datos: DatosAgendaPublica; e
           <div className="p-4 sm:p-6">
             <PasoServicios servicios={datos.servicios} items={estado.items} cambiarItems={cambiarItems} />
           </div>
-          {/* Barra fija abajo: siempre a mano el total y «Siguiente». */}
-          <div className="sticky bottom-0 z-10 flex flex-col gap-3 rounded-b-2xl border-t border-borde bg-fondo-2/95 p-4 backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          {/* Cierre de la tarjeta: total elegido y «Siguiente». */}
+          <div className="flex flex-col gap-3 border-t border-borde p-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             {error ? (
               <p role="alert" className="text-sm text-rojo">
                 {error}
               </p>
+            ) : falta && cantidadElegidos > 0 ? (
+              <p className="text-sm text-texto-secundario">{falta}</p>
             ) : cantidadElegidos > 0 ? (
               <p className="text-sm text-texto-secundario">
                 {cantidadElegidos === 1 ? "1 servicio" : `${cantidadElegidos} servicios`} ·{" "}
@@ -251,7 +258,10 @@ export function ReservaFlujo({ datos, embebida }: { datos: DatosAgendaPublica; e
                   <ArrowLeft size={16} />
                   Atrás
                 </button>
-                {botonSiguiente}
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+                  {falta && !error && <p className="text-sm text-texto-secundario sm:text-right">{falta}</p>}
+                  {botonSiguiente}
+                </div>
               </div>
             )}
           </div>

@@ -6,7 +6,10 @@ import type { ItemReserva, ServicioPublico } from "@/lib/types/reserva";
 import type { UnidadDuracion } from "@/lib/types/servicio";
 import { Seccion } from "./ui";
 
-function textoDuracion(valor: number | null | undefined, unidad: UnidadDuracion | null | undefined): string | null {
+function textoDuracion(
+  valor: number | null | undefined,
+  unidad: UnidadDuracion | null | undefined
+): string | null {
   if (!valor) return null;
   if (unidad === "horas") return `${valor} ${valor === 1 ? "hora" : "horas"}`;
   return `${valor} ${valor === 1 ? "día" : "días"}`;
@@ -18,8 +21,6 @@ interface OpcionServicio {
   clave: string;
   servicio: ServicioPublico;
   variante: number | null;
-  /** Nombre del servicio arriba del título; vacío si el título ya lo dice. */
-  categoria: string | null;
   titulo: string;
   duracion: string | null;
   unidad: string | null;
@@ -33,7 +34,6 @@ function opcionesDe(servicios: ServicioPublico[]): OpcionServicio[] {
           clave: s.id,
           servicio: s,
           variante: null,
-          categoria: null,
           titulo: s.nombre,
           duracion: textoDuracion(s.duracion_valor, s.duracion_unidad),
           unidad: null,
@@ -41,12 +41,10 @@ function opcionesDe(servicios: ServicioPublico[]): OpcionServicio[] {
       ];
     }
     return s.variantes.map((v, i) => {
-      const repiteNombre = v.nombre.toLowerCase().startsWith(s.nombre.toLowerCase());
       return {
         clave: `${s.id}:${i}`,
         servicio: s,
         variante: i,
-        categoria: repiteNombre ? null : s.nombre,
         titulo: v.nombre,
         duracion:
           v.duracion_valor != null
@@ -68,6 +66,14 @@ export function PasoServicios({
   cambiarItems: (items: ItemReserva[]) => void;
 }) {
   const opciones = opcionesDe(servicios);
+  // Una sección por servicio (PPF, Polarizado, Tratamiento cerámico…)
+  // con sus opciones adentro, en el orden del catálogo.
+  const categorias = servicios
+    .map((s) => ({
+      servicio: s,
+      opciones: opciones.filter((o) => o.servicio.id === s.id),
+    }))
+    .filter((c) => c.opciones.length > 0);
   const itemDe = (o: OpcionServicio) =>
     items.find((i) => i.servicio_id === o.servicio.id && i.variante === o.variante);
 
@@ -78,7 +84,11 @@ export function PasoServicios({
       return;
     }
     // Llantas: casi siempre son las 4.
-    const nuevo: ItemReserva = { servicio_id: o.servicio.id, variante: o.variante, cantidad: o.unidad === "llanta" ? 4 : 1 };
+    const nuevo: ItemReserva = {
+      servicio_id: o.servicio.id,
+      variante: o.variante,
+      cantidad: o.unidad === "llanta" ? 4 : 1,
+    };
     const otros = items.filter((i) => i.servicio_id !== o.servicio.id);
     cambiarItems([...otros, nuevo]);
   };
@@ -93,96 +103,123 @@ export function PasoServicios({
       titulo="¿Qué servicio querés?"
       subtitulo="Elegí uno o más. Si sumás varios, se hacen en el mismo turno."
     >
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 lg:gap-3">
-        {opciones.map((o) => {
-          const item = itemDe(o);
-          const elegido = !!item;
-          const precio = textoPrecio(precioItem(o.servicio, { variante: o.variante, cantidad: 1 }));
-          return (
-            <div
-              key={o.clave}
-              className={`relative flex flex-col rounded-xl border transition-colors ${
-                elegido ? "border-rojo bg-rojo/5" : "border-borde bg-panel hover:border-texto-secundario/60"
-              }`}
-            >
-              <button
-                type="button"
-                onClick={() => alternar(o)}
-                aria-pressed={elegido}
-                className="flex flex-1 flex-col gap-2 p-4 md:p-3.5 lg:p-4 text-left"
+      <div className="flex flex-col gap-7">
+        {categorias.map(({ servicio, opciones: delServicio }) => (
+          <section
+            key={servicio.id}
+            aria-labelledby={`categoria-${servicio.id}`}
+            className="flex flex-col gap-3"
+          >
+            <div className="flex items-center gap-3">
+              <h3
+                id={`categoria-${servicio.id}`}
+                className="shrink-0 text-xs font-semibold uppercase tracking-wider text-texto"
               >
-                <span className="flex items-start justify-between gap-3">
-                  <span className="min-w-0">
-                    {o.categoria && (
-                      <span className="block text-[10px] lg:text-[11px] font-medium uppercase tracking-wide text-texto-secundario">
-                        {o.categoria}
-                      </span>
-                    )}
-                    <span className="block text-sm lg:text-base font-semibold text-texto leading-snug">
-                      {o.titulo}
-                    </span>
-                  </span>
-                  <span
-                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
-                      elegido ? "border-rojo bg-rojo text-white" : "border-texto-secundario/50"
-                    }`}
-                    aria-hidden
-                  >
-                    {elegido && <Check size={13} strokeWidth={3} />}
-                  </span>
+                {servicio.nombre}
+              </h3>
+              <span className="h-px flex-1 bg-borde" />
+              {delServicio.length > 1 && (
+                <span className="shrink-0 text-xs text-texto-secundario">
+                  {delServicio.length} opciones · elegí una
                 </span>
-
-                {o.variante == null && o.servicio.descripcion && (
-                  <span className="text-xs text-texto-secundario line-clamp-3">{o.servicio.descripcion}</span>
-                )}
-
-                <span className="mt-auto flex flex-wrap items-end justify-between gap-x-3 gap-y-1 pt-1">
-                  <span className="text-sm lg:text-base font-semibold text-texto tabular-nums">
-                    {precio}
-                    {o.unidad && <span className="text-xs font-normal text-texto-secundario"> c/{o.unidad}</span>}
-                  </span>
-                  {o.duracion && (
-                    <span className="inline-flex items-center gap-1 text-xs text-texto-secundario">
-                      <Clock size={12} /> {o.duracion}
-                    </span>
-                  )}
-                </span>
-                {o.variante == null && seCotizaPorFoto(o.servicio) && (
-                  <span className="inline-flex items-center gap-1.5 text-xs text-texto-secundario">
-                    <Camera size={12} /> Se cotiza con una foto del bollo
-                  </span>
-                )}
-              </button>
-
-              {elegido && o.unidad && (
-                <div className="flex items-center justify-between gap-3 border-t border-borde px-4 py-2.5 text-sm">
-                  <span className="text-texto-secundario">Cantidad de {o.unidad}s</span>
-                  <span className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => cambiarCantidad(o, item.cantidad - 1)}
-                      disabled={item.cantidad <= 1}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-borde text-texto disabled:opacity-30"
-                    >
-                      <Minus size={14} />
-                      <span className="sr-only">Una menos</span>
-                    </button>
-                    <span className="w-5 text-center font-medium tabular-nums text-texto">{item.cantidad}</span>
-                    <button
-                      type="button"
-                      onClick={() => cambiarCantidad(o, item.cantidad + 1)}
-                      disabled={item.cantidad >= 8}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-borde text-texto disabled:opacity-30"
-                    >
-                      <Plus size={14} />
-                      <span className="sr-only">Una más</span>
-                    </button>
-                  </span>
-                </div>
               )}
             </div>
-          );
-        })}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 lg:gap-3">
+              {delServicio.map((o) => {
+                const item = itemDe(o);
+                const elegido = !!item;
+                const precio = textoPrecio(precioItem(o.servicio, { variante: o.variante, cantidad: 1 }));
+                return (
+                  <div
+                    key={o.clave}
+                    className={`relative flex flex-col rounded-xl border transition-colors ${
+                      elegido
+                        ? "border-rojo bg-rojo/5"
+                        : "border-borde bg-panel hover:border-texto-secundario/60"
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => alternar(o)}
+                      aria-pressed={elegido}
+                      className="flex flex-1 flex-col gap-2 p-4 md:p-3.5 lg:p-4 text-left"
+                    >
+                      <span className="flex items-start justify-between gap-3">
+                        <span className="min-w-0">
+                          <span className="block text-sm lg:text-base font-semibold text-texto leading-snug">
+                            {o.titulo}
+                          </span>
+                        </span>
+                        <span
+                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+                            elegido ? "border-rojo bg-rojo text-white" : "border-texto-secundario/50"
+                          }`}
+                          aria-hidden
+                        >
+                          {elegido && <Check size={13} strokeWidth={3} />}
+                        </span>
+                      </span>
+
+                      {o.variante == null && o.servicio.descripcion && (
+                        <span className="text-xs text-texto-secundario line-clamp-3">
+                          {o.servicio.descripcion}
+                        </span>
+                      )}
+
+                      <span className="mt-auto flex flex-wrap items-end justify-between gap-x-3 gap-y-1 pt-1">
+                        <span className="text-sm lg:text-base font-semibold text-texto tabular-nums">
+                          {precio}
+                          {o.unidad && (
+                            <span className="text-xs font-normal text-texto-secundario"> c/{o.unidad}</span>
+                          )}
+                        </span>
+                        {o.duracion && (
+                          <span className="inline-flex items-center gap-1 text-xs text-texto-secundario">
+                            <Clock size={12} /> {o.duracion}
+                          </span>
+                        )}
+                      </span>
+                      {o.variante == null && seCotizaPorFoto(o.servicio) && (
+                        <span className="inline-flex items-center gap-1.5 text-xs text-texto-secundario">
+                          <Camera size={12} /> Se cotiza con una foto del bollo
+                        </span>
+                      )}
+                    </button>
+
+                    {elegido && o.unidad && (
+                      <div className="flex items-center justify-between gap-3 border-t border-borde px-4 py-2.5 text-sm">
+                        <span className="text-texto-secundario">Cantidad de {o.unidad}s</span>
+                        <span className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => cambiarCantidad(o, item.cantidad - 1)}
+                            disabled={item.cantidad <= 1}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-borde text-texto disabled:opacity-30"
+                          >
+                            <Minus size={14} />
+                            <span className="sr-only">Una menos</span>
+                          </button>
+                          <span className="w-5 text-center font-medium tabular-nums text-texto">
+                            {item.cantidad}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => cambiarCantidad(o, item.cantidad + 1)}
+                            disabled={item.cantidad >= 8}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-borde text-texto disabled:opacity-30"
+                          >
+                            <Plus size={14} />
+                            <span className="sr-only">Una más</span>
+                          </button>
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        ))}
       </div>
     </Seccion>
   );
