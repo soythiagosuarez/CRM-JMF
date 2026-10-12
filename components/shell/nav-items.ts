@@ -11,6 +11,7 @@ import {
   BellRing,
   BarChart3,
   Settings,
+  Inbox,
   type LucideIcon,
 } from "lucide-react";
 
@@ -49,6 +50,7 @@ export const navGroups: NavGroup[] = [
     titulo: "Gestión",
     items: [
       { href: "/clientes", label: "Clientes", icon: Users },
+      { href: "/consultas", label: "Consultas web", icon: Inbox },
       { href: "/presupuestos", label: "Presupuestos", icon: UserSearch },
       { href: "/servicios", label: "Servicios", icon: Wrench },
       { href: "/recordatorios", label: "Recordatorios", icon: BellRing },

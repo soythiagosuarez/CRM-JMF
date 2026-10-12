@@ -15,6 +15,7 @@ import {
 import { obtenerDashboard } from "@/lib/data/dashboard";
 import { AlertaRecordatorios } from "@/components/inicio/AlertaRecordatorios";
 import { AlertaReservas } from "@/components/inicio/AlertaReservas";
+import { AlertaConsultas } from "@/components/inicio/AlertaConsultas";
 import { AlertaFidelizacion } from "@/components/inicio/AlertaFidelizacion";
 import { FLAG_LABEL } from "@/lib/types/orden";
 import { TIPO_LABEL } from "@/lib/types/recordatorio";
@@ -39,6 +40,7 @@ export default async function InicioPage() {
       </div>
 
       <AlertaReservas reservas={dash.reservasNuevas} />
+      <AlertaConsultas consultas={dash.consultasNuevas} />
       <AlertaRecordatorios alertas={dash.alertasRecordatorios} />
       <AlertaFidelizacion alertas={dash.alertasPremios} />
 

@@ -66,3 +66,16 @@ Se aplica igual que las anteriores, después de la 0009. Mientras no se
 corra, la agenda sigue andando con la anticipación general de Config.
 
 Aplicada en producción el 12/10/2026.
+
+## Consultas web (migración 0011)
+
+`migrations/0011_consultas_web.sql` crea la tabla `consultas_web`, donde
+quedan las consultas del formulario de Contacto de la web de JMF Detailing.
+La web las manda a `/api/consultas` (público, con campo trampa para bots y
+máximo 3 consultas por celular por día) y se gestionan desde **Consultas
+web** en el CRM.
+
+Se aplica igual que las anteriores, después de la 0010. Para aceptar
+consultas desde otro dominio además de soythiagosuarez.github.io (por
+ejemplo uno propio), cargarlo en la variable `CONSULTAS_ORIGENES` de Vercel
+(varios separados por coma).

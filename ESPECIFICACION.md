@@ -411,3 +411,11 @@ Definido con Joaco en el relevamiento de septiembre 2026. Se construye primero l
 ---
 
 *Fin de la especificación. Cualquier cambio se hace acá primero y después se baja a Claude Code.*
+
+### 12.x Consultas web
+
+- El formulario de Contacto de la web de JMF Detailing manda las consultas al CRM (`/api/consultas`), que las guarda en `consultas_web`.
+- Sección **Consultas web** (Gestión): estados Nueva → En contacto → Concretada / Descartada, notas internas, botón «Escribirle por WhatsApp» con mensaje armado (pasa sola a En contacto) y marca «Ya es cliente» si el celular coincide.
+- Aviso en Inicio mientras haya consultas nuevas.
+- Anti-spam: campo trampa oculto, máximo 3 consultas por celular y 10 por conexión por día, solo desde la web de JMF.
+- La agenda online se embebe en la web en la sección «Reservá tu turno», con el mismo fondo de la web y el alto ajustado a cada paso.
