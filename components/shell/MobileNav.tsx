@@ -57,16 +57,16 @@ export function MobileNav() {
           setRutaAlAbrir(pathname);
           setAbierto((a) => !a);
         }}
-        className="md:hidden -mr-2 flex h-10 w-10 items-center justify-center rounded-lg text-texto hover:bg-panel-2"
+        className="md:hidden -mr-2.5 flex h-12 w-12 items-center justify-center rounded-xl text-texto hover:bg-panel-2"
         aria-expanded={abierto}
         aria-controls="menu-movil"
       >
-        {abierto ? <X size={22} /> : <Menu size={22} />}
+        {abierto ? <X size={26} /> : <Menu size={26} />}
         <span className="sr-only">{abierto ? "Cerrar menú" : "Abrir menú"}</span>
       </button>
 
       {abierto && (
-        <div className="fixed inset-x-0 top-14 bottom-0 z-40 md:hidden">
+        <div className="fixed inset-x-0 top-[4.5rem] bottom-0 z-40 md:hidden">
           <div className="absolute inset-0 bg-black/60" onClick={() => setAbierto(false)} />
           <nav
             id="menu-movil"
