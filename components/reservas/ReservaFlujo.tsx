@@ -33,6 +33,7 @@ export function ReservaFlujo({ datos, embebida }: { datos: DatosAgendaPublica; e
   const ctx: ContextoAgenda = useMemo(
     () => ({
       hoy: datos.hoy,
+      horaActual: datos.horaActual,
       config: datos.config,
       servicios: datos.servicios,
       ocupaciones: datos.ocupaciones,
@@ -195,8 +196,9 @@ export function ReservaFlujo({ datos, embebida }: { datos: DatosAgendaPublica; e
           <div className="p-4 sm:p-6">
             <PasoServicios servicios={datos.servicios} items={estado.items} cambiarItems={cambiarItems} />
           </div>
-          {/* Cierre de la tarjeta: total elegido y «Siguiente». */}
-          <div className="flex flex-col gap-3 border-t border-borde p-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          {/* Cierre de la tarjeta: total elegido y «Siguiente» (en el celular,
+              fija abajo de la pantalla mientras se recorre la lista). */}
+          <div className="sticky bottom-0 z-10 flex flex-col gap-3 rounded-b-2xl border-t border-borde bg-fondo-2/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur sm:static sm:flex-row sm:items-center sm:justify-between sm:bg-transparent sm:px-6 sm:pb-4 sm:backdrop-blur-none">
             {error ? (
               <p role="alert" className="text-sm text-rojo">
                 {error}
@@ -217,7 +219,13 @@ export function ReservaFlujo({ datos, embebida }: { datos: DatosAgendaPublica; e
           </div>
         </div>
       ) : (
-        <div className="grid overflow-hidden rounded-2xl border border-borde bg-panel/60 lg:grid-cols-[minmax(260px,320px)_1fr]">
+        // Calendario: la tarjeta se ajusta a lo que muestra (crece al aparecer
+        // los horarios, como Calendly). Datos y confirmar: ancho fijo.
+        <div
+          className={`mx-auto grid w-full overflow-hidden rounded-2xl border border-borde bg-panel/60 ${
+            paso === "fecha" ? "lg:w-fit lg:grid-cols-[300px_auto]" : "max-w-5xl lg:grid-cols-[300px_1fr]"
+          }`}
+        >
           <ResumenLateral
             datos={datos}
             estado={estado}

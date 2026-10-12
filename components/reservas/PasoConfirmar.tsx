@@ -6,7 +6,7 @@ import { AVISO_COTIZACION, nombreItem, seCotizaPorFoto, textoPrecioTotal } from 
 import { TAMANO_LABEL } from "@/lib/reservas/vehiculos";
 import { CANAL_LABEL, type CanalReserva, type DatosAgendaPublica } from "@/lib/types/reserva";
 import { Aviso, Campo, Seccion } from "./ui";
-import type { EstadoReserva } from "./estado";
+import { celularDe, type EstadoReserva } from "./estado";
 
 function Fila({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -43,7 +43,7 @@ export function PasoConfirmar({
       <dl className="rounded-xl border border-borde bg-panel px-4 py-1">
         <Fila label="Vos">
           {estado.busqueda.estado === "encontrado" ? "Cliente de JMF" : estado.nombre}
-          <span className="text-texto-secundario"> · {estado.telefono}</span>
+          <span className="text-texto-secundario"> · {celularDe(estado)}</span>
         </Fila>
         <Fila label="Auto">
           {autoCargado ? (

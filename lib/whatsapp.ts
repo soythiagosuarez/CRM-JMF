@@ -10,10 +10,13 @@ export function linkWhatsapp(telefono: string, mensaje: string): string {
  * wa.me necesita el número internacional (54 9 + área + número). Los
  * celulares se cargan como los escribe la gente ("11 5555-1234",
  * "011 5555 1234", "+54 9 11 ..."), así que se completan los números
- * argentinos que vienen sin código de país o sin el 9 de celular.
+ * argentinos que vienen sin código de país o sin el 9 de celular. Los de
+ * otros países se cargan con "+código" y se usan tal cual.
  */
 export function numeroWhatsapp(telefono: string): string {
   let d = telefono.replace(/\D/g, "");
+  // Número de otro país cargado con su "+código": ya está completo.
+  if (telefono.trim().startsWith("+") && !d.startsWith("54")) return d;
   if (d.startsWith("00")) d = d.slice(2);
   if (d.startsWith("0")) d = d.slice(1);
   if (d.length === 10) return "549" + d;
