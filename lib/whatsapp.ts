@@ -157,3 +157,10 @@ export function mensajeRecordarTurno(
 export function mensajePremiosDisponibles(cliente: string, puntos: number, premios: string[]): string {
   return `Hola ${cliente}, gracias por confiar en JMF Detailing. Ya juntaste ${puntos} puntos y podés canjearlos por: ${premios.join(", ")}. Si querés, lo usamos en tu próximo turno. — JMF Detailing`;
 }
+
+/** Respuesta a una consulta que llegó por el formulario de la web. */
+export function mensajeConsultaWeb(nombre: string, servicio: string | null): string {
+  const primerNombre = nombre.trim().split(/\s+/)[0] ?? "";
+  const sobre = servicio ? ` por ${servicio}` : "";
+  return `Hola ${primerNombre}! Te escribimos de JMF Detailing por la consulta${sobre} que dejaste en nuestra web. ¿Cómo te podemos ayudar?`;
+}

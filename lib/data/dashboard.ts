@@ -1,3 +1,4 @@
+import { listarConsultasNuevas } from "@/lib/data/consultas";
 import { createClient } from "@/lib/supabase/server";
 import { listarMovimientos, calcularTotales } from "@/lib/data/movimientos";
 import { listarOrdenes } from "@/lib/data/ordenes";
@@ -31,12 +32,13 @@ export async function obtenerDashboard() {
   const { desde: desdeMes, hasta: hastaMes } = rangoMesActual();
   const { desde: desdeSemana, hasta: hastaSemana } = rangoSemanaActual();
 
-  const [movimientosMes, ordenes, recordatorios, reservasNuevas, resumenes] = await Promise.all([
+  const [movimientosMes, ordenes, recordatorios, reservasNuevas, resumenes, consultasNuevas] = await Promise.all([
     listarMovimientos({ desde: desdeMes, hasta: hastaMes }),
     listarOrdenes(),
     listarRecordatorios(),
     listarReservasSinRevisar(),
     obtenerResumenesFidelizacion(),
+    listarConsultasNuevas(),
   ]);
 
   // Fidelización: clientes a los que hay que avisarles que tienen premio.
@@ -109,6 +111,7 @@ export async function obtenerDashboard() {
     recordatoriosProximos,
     alertasRecordatorios,
     reservasNuevas,
+    consultasNuevas,
     alertasPremios,
   };
 }

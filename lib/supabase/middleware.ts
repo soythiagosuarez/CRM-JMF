@@ -7,8 +7,9 @@ import { NextResponse, type NextRequest } from "next/server";
  * solo "hay sesión" o "no hay sesión".
  */
 /** Rutas abiertas al público, sin login: la agenda online que se
- * comparte por link y se embebe en la web de JMF Detailing. */
-const RUTAS_PUBLICAS = ["/reservar"];
+ * comparte por link y se embebe en la web de JMF Detailing, y el
+ * endpoint que recibe el formulario de Contacto de esa web. */
+const RUTAS_PUBLICAS = ["/reservar", "/api/consultas"];
 
 function esRutaPublica(pathname: string): boolean {
   return RUTAS_PUBLICAS.some((r) => pathname === r || pathname.startsWith(r + "/"));
